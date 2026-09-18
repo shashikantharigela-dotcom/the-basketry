@@ -2,62 +2,53 @@ import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import type { PointLight } from "three";
-import {
-  CAMERA_CURVE,
-  LOOKAT_CURVE,
-  getCameraParam,
-  getStage,
-  getStageLocalProgress,
-} from "../narrative/narrativeConfig";
+import { computeCameraPose, getAerialBlend } from "../world/worldPath";
 import { useSceneStore } from "../store/useSceneStore";
 
 const targetPosition = new THREE.Vector3();
 const targetLookAt = new THREE.Vector3();
-const disconnectedStage = getStage("disconnected");
 
+/** Drives the camera continuously along the world path (see
+ * worldPath.ts) — chasing the truck with a slowly-varying cinematic
+ * offset, then blending into the aerial ecosystem reveal. There is no
+ * per-stage snap here: the whole point is one continuous shot. */
 export function CameraRig() {
   const currentLookAt = useRef(new THREE.Vector3(0, 0, 0));
   const fillLightRef = useRef<PointLight>(null);
 
   useFrame((state, delta) => {
     const progress = useSceneStore.getState().progress;
+    const motionScale = useSceneStore.getState().motionScale;
     const t = THREE.MathUtils.clamp(progress, 0, 1);
 
-    // getPoint (uniform parameter), not getPointAt (arc-length) — with ten
-    // keyframes spaced very unevenly in world distance, arc-length
-    // sampling would decouple camera position from scroll progress. The
-    // curve's own parameter space is then remapped via getCameraParam so
-    // each stage's keyframe lands on that stage's center, not on an
-    // arbitrary i/(N-1) unrelated to our equal-width stage ranges.
-    const camT = getCameraParam(t);
-    CAMERA_CURVE.getPoint(camT, targetPosition);
-    LOOKAT_CURVE.getPoint(camT, targetLookAt);
-
-    // A touch of handheld-style tension while the story is at its most
-    // fragmented, peaking at the Disconnected Journey stage's center and
-    // fading back to a steady dolly everywhere else — never a random spin.
-    const localDisconnect = getStageLocalProgress(disconnectedStage, t);
-    const tension = Math.sin(localDisconnect * Math.PI) * useSceneStore.getState().motionScale;
-    const elapsed = state.clock.elapsedTime;
-    targetPosition.x += Math.sin(elapsed * 0.6) * 0.1 * tension;
-    targetPosition.y += Math.sin(elapsed * 0.9 + 1.3) * 0.06 * tension;
+    computeCameraPose(t, state.clock.elapsedTime, motionScale, targetPosition, targetLookAt);
 
     // Damp rather than snap, so the dolly reads as cinematic rather than
-    // scrollbar-attached (see blueprint §4/§8).
+    // scrollbar-attached.
     const dampFactor = 1 - Math.pow(0.001, delta);
     state.camera.position.lerp(targetPosition, dampFactor);
     currentLookAt.current.lerp(targetLookAt, dampFactor);
     state.camera.lookAt(currentLookAt.current);
 
     // A soft fill/highlight light that travels with the camera, so every
-    // stage gets a gentle specular pop on the glossy materials regardless
-    // of how far it sits along the ~40-unit dolly track.
+    // stop along the drive gets a gentle specular pop on the glossy
+    // materials regardless of how far it sits along the route.
     if (fillLightRef.current) {
       fillLightRef.current.position.set(
         state.camera.position.x - 1.5,
         state.camera.position.y + 1.2,
         state.camera.position.z
       );
+    }
+
+    // Widen the fog for the aerial reveal — the same near/far values that
+    // read as cinematic depth at truck height would wash out a high wide
+    // shot of the whole world.
+    const fog = state.scene.fog as THREE.Fog | null;
+    if (fog) {
+      const aerial = getAerialBlend(t);
+      fog.near = THREE.MathUtils.lerp(9, 16, aerial);
+      fog.far = THREE.MathUtils.lerp(34, 140, aerial);
     }
   });
 

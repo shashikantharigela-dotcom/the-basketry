@@ -18,7 +18,7 @@ export interface MiniBuildingProps {
 }
 
 const WALL_MATERIAL = new THREE.MeshStandardMaterial({ color: "#ffffff", roughness: 0.35, metalness: 0.05 });
-const ROOF_MATERIAL = new THREE.MeshStandardMaterial({ color: "#171717", roughness: 0.4, metalness: 0.2 });
+const ROOF_MATERIAL = new THREE.MeshStandardMaterial({ color: "#3d0509", roughness: 0.4, metalness: 0.2 });
 const ACCENT_MATERIAL = new THREE.MeshStandardMaterial({
   color: "#f20d16",
   roughness: 0.3,

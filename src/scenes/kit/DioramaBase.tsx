@@ -9,7 +9,7 @@ export interface DioramaBaseProps {
   height?: number;
 }
 
-const BASE_MATERIAL = new THREE.MeshStandardMaterial({ color: "#171717", roughness: 0.5, metalness: 0.15 });
+const BASE_MATERIAL = new THREE.MeshStandardMaterial({ color: "#3d0509", roughness: 0.5, metalness: 0.15 });
 const RIM_MATERIAL = new THREE.MeshStandardMaterial({
   color: "#f20d16",
   roughness: 0.25,

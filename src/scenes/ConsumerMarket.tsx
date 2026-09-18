@@ -3,7 +3,7 @@ import { getStage } from "../narrative/narrativeConfig";
 import { ProductObject } from "./ProductObject";
 
 const PLINTH_GEOMETRY = new THREE.CylinderGeometry(1.6, 1.8, 0.2, 48);
-const PLINTH_MATERIAL = new THREE.MeshStandardMaterial({ color: "#171717", roughness: 0.3, metalness: 0.3 });
+const PLINTH_MATERIAL = new THREE.MeshStandardMaterial({ color: "#3d0509", roughness: 0.3, metalness: 0.3 });
 
 const CONSUMER_GEOMETRY = new THREE.CapsuleGeometry(0.22, 0.5, 6, 12);
 const CONSUMER_MATERIAL = new THREE.MeshStandardMaterial({ color: "#fff8ed", roughness: 0.3, metalness: 0.05 });
@@ -20,7 +20,7 @@ export function ConsumerMarket() {
   const stage = getStage("consumerMarket");
 
   return (
-    <group position={stage.anchor}>
+    <group position={[stage.anchor[0], -0.3, stage.anchor[2]]}>
       <mesh geometry={PLINTH_GEOMETRY} material={PLINTH_MATERIAL} position={[0.6, -0.9, 0]} />
 
       <ProductObject position={[0, -0.4, 0.3]} rotation={[0, 0.3, 0]} scale={1.1} variant="bottle" accent spinSpeed={0.05} />

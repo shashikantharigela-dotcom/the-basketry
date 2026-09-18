@@ -9,7 +9,7 @@ const CRATE_GEOMETRY = new THREE.BoxGeometry(0.32, 0.32, 0.32);
 const SUPPLIER_GEOMETRY = new THREE.OctahedronGeometry(0.22, 0);
 
 const WHITE_MATERIAL = new THREE.MeshStandardMaterial({ color: "#ffffff", roughness: 0.25, metalness: 0.08 });
-const DARK_MATERIAL = new THREE.MeshStandardMaterial({ color: "#171717", roughness: 0.35, metalness: 0.3 });
+const DARK_MATERIAL = new THREE.MeshStandardMaterial({ color: "#3d0509", roughness: 0.35, metalness: 0.3 });
 const ACCENT_MATERIAL = new THREE.MeshStandardMaterial({ color: "#f20d16", roughness: 0.25, metalness: 0.12 });
 
 const SUPPLIERS: Array<[number, number, number]> = [
@@ -31,7 +31,7 @@ export function BusinessHub() {
   const stage = getStage("businessSourcing");
 
   return (
-    <group position={stage.anchor}>
+    <group position={[stage.anchor[0], -0.4, stage.anchor[2]]}>
       <mesh geometry={WAREHOUSE_BODY_GEOMETRY} material={WHITE_MATERIAL} position={[0, -0.35, 0]} />
       <mesh geometry={ROOF_GEOMETRY} material={DARK_MATERIAL} position={[0, 0.5, 0]} rotation={[0, Math.PI / 4, 0]} />
       <mesh geometry={DOOR_GEOMETRY} material={ACCENT_MATERIAL} position={[0, -0.55, 0.83]} />

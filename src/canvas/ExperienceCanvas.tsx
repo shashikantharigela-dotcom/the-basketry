@@ -17,7 +17,7 @@ export function ExperienceCanvas() {
       {/* Soft ambient gradient (warm red sky, near-black ground) instead of
           a single flat ambient fill — reinforces the Red World's vertical
           depth alongside the Backdrop and fog. */}
-      <hemisphereLight args={["#ff5147", "#0d0d0d", 0.55]} />
+      <hemisphereLight args={["#ff5147", "#3d0509", 0.55]} />
       <ambientLight intensity={0.2} color="#fff8ed" />
       <directionalLight position={[6, 8, 5]} intensity={1.25} color="#ffffff" />
       <directionalLight position={[-6, 3, -4]} intensity={0.3} color="#b90710" />
