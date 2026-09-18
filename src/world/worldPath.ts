@@ -107,12 +107,12 @@ interface OffsetKeyframe {
 // land with the story beats.
 const OFFSET_KEYFRAMES: OffsetKeyframe[] = [
   { u: 0.0, back: 9.0, up: 4.5, side: 2.2, lookAhead: 2.2, targetBias: 1.0 },
-  { u: 0.111, back: 13.0, up: 7.0, side: 1.6, lookAhead: 2.6, targetBias: 0.9 },
+  { u: 0.111, back: 17.0, up: 9.5, side: 2.2, lookAhead: 1.5, targetBias: 2.0 },
   { u: 0.25, back: 14.0, up: 8.0, side: 2.6, lookAhead: 3.0, targetBias: 1.1 },
   { u: 0.417, back: 12.0, up: 7.5, side: 1.8, lookAhead: 2.2, targetBias: 0.9 },
   { u: 0.556, back: 15.0, up: 8.5, side: 2.4, lookAhead: 2.6, targetBias: 1.0 },
   { u: 0.694, back: 14.5, up: 8.5, side: 2.0, lookAhead: 2.2, targetBias: 0.95 },
-  { u: 1.0, back: 10.0, up: 6.5, side: 1.6, lookAhead: 1.6, targetBias: 0.9 },
+  { u: 1.0, back: 13.0, up: 8.0, side: 3.5, lookAhead: 0.8, targetBias: 4.5 },
 ];
 
 function interpolateOffset(u: number): OffsetKeyframe {
@@ -142,10 +142,24 @@ function interpolateOffset(u: number): OffsetKeyframe {
 const TENSION_CENTER_U = 0.333; // midpoint of the disconnected stretch (0.25–0.417)
 const TENSION_HALF_WIDTH = 0.12;
 
-// A high, wide aerial vantage that takes in the whole world at once —
-// the ecosystem reveal is a camera move, not a new floating diorama.
-const AERIAL_POSITION = new THREE.Vector3(24, 32, 16);
+// A wide aerial vantage that takes in the whole world at once — the
+// ecosystem reveal is a camera move, not a new floating diorama. Pulled
+// in from an earlier, more extreme version: distant enough to read as
+// "the connected ecosystem," not so distant it reads as a satellite
+// shot of the journey we just took.
+const AERIAL_POSITION = new THREE.Vector3(18, 23, 6);
 const AERIAL_TARGET = new THREE.Vector3(2, -1, -30);
+
+// The chase-to-aerial blend eases in on a delayed curve (t^EASE_POWER
+// before the smoothstep) rather than a plain smoothstep over the whole
+// post-drive range: a plain smoothstep's fastest motion lands at the
+// midpoint of that range, which is squarely inside the Demand Loop
+// stage — exactly the "sudden pull-back right after the drive ends"
+// feeling this avoids. Delaying the curve keeps Ecosystem and most of
+// Demand Loop feeling like a gentle, still-grounded widening, saving
+// the bulk of the pull-back for Final Statement, where it reads as a
+// deliberate reveal rather than a retreat.
+const AERIAL_EASE_POWER = 3;
 
 const truckPosition = new THREE.Vector3();
 const truckTangent = new THREE.Vector3();
@@ -225,14 +239,21 @@ export function computeCameraPose(
     return bankAngle;
   }
 
-  const blend = smoothstep01((progress - TRUCK_END_PROGRESS) / (1 - TRUCK_END_PROGRESS));
+  const blend = computeAerialBlend(progress);
   outPosition.copy(chasePosition).lerp(AERIAL_POSITION, blend);
   outTarget.copy(chaseTarget).lerp(AERIAL_TARGET, blend);
   return bankAngle * (1 - blend);
 }
 
 /** How far into the aerial pull-back we are (0 before it starts, 1 once
- * fully aerial) — used to widen fog so the wide reveal isn't washed out. */
+ * fully aerial) — see AERIAL_EASE_POWER's note above for why this isn't
+ * a plain smoothstep. Used to widen fog so the wide reveal isn't washed
+ * out, and shared with computeCameraPose so both stay in sync. */
 export function getAerialBlend(progress: number): number {
-  return smoothstep01((progress - TRUCK_END_PROGRESS) / (1 - TRUCK_END_PROGRESS));
+  return computeAerialBlend(progress);
+}
+
+function computeAerialBlend(progress: number): number {
+  const t = clamp01((progress - TRUCK_END_PROGRESS) / (1 - TRUCK_END_PROGRESS));
+  return smoothstep01(Math.pow(t, AERIAL_EASE_POWER));
 }
