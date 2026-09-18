@@ -1,11 +1,19 @@
+import { useRef } from "react";
+import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
+import type { Mesh } from "three";
 
-const WIDTH = 240;
-const HEIGHT = 150;
+// A proper skybox, not a flat plane: a huge sphere that recenters on the
+// camera every frame, so it's impossible to see an edge or seam no matter
+// how oblique a given keyframe's viewing angle is. Vertex colors run
+// top-to-bottom: vivid red atmosphere, a deep-red transition, cinematic
+// black — depth in the Red World itself rather than a flat single color.
+const RADIUS = 160;
+const WIDTH_SEGMENTS = 32;
 const HEIGHT_SEGMENTS = 24;
 
-function buildGradientGeometry(): THREE.PlaneGeometry {
-  const geometry = new THREE.PlaneGeometry(WIDTH, HEIGHT, 1, HEIGHT_SEGMENTS);
+function buildGradientGeometry(): THREE.SphereGeometry {
+  const geometry = new THREE.SphereGeometry(RADIUS, WIDTH_SEGMENTS, HEIGHT_SEGMENTS);
   const top = new THREE.Color("#f20d16");
   const mid = new THREE.Color("#b90710");
   const bottom = new THREE.Color("#171717");
@@ -14,8 +22,8 @@ function buildGradientGeometry(): THREE.PlaneGeometry {
   const position = geometry.attributes.position;
 
   for (let i = 0; i < position.count; i++) {
-    const y = position.getY(i);
-    const t = (HEIGHT / 2 - y) / HEIGHT; // 0 at top, 1 at bottom
+    const y = position.getY(i); // -RADIUS (straight down) .. +RADIUS (straight up)
+    const t = (RADIUS - y) / (2 * RADIUS); // 0 at top, 1 at bottom
     if (t < 0.45) {
       sample.copy(top).lerp(mid, t / 0.45);
     } else {
@@ -32,13 +40,18 @@ const BACKDROP_GEOMETRY = buildGradientGeometry();
 const BACKDROP_MATERIAL = new THREE.MeshBasicMaterial({
   vertexColors: true,
   fog: false,
-  depthWrite: false,
+  side: THREE.BackSide,
   toneMapped: false,
 });
 
-/** A large, fixed gradient plane far behind the whole dolly track: vivid
- * red atmosphere up top, a deep-red transition, and cinematic black lower
- * down — depth in the Red World itself rather than a flat single color. */
+/** A skybox sphere that always stays centered on the camera. */
 export function Backdrop() {
-  return <mesh geometry={BACKDROP_GEOMETRY} material={BACKDROP_MATERIAL} position={[0, 4, -70]} />;
+  const meshRef = useRef<Mesh>(null);
+
+  useFrame((state) => {
+    if (!meshRef.current) return;
+    meshRef.current.position.copy(state.camera.position);
+  });
+
+  return <mesh ref={meshRef} geometry={BACKDROP_GEOMETRY} material={BACKDROP_MATERIAL} />;
 }

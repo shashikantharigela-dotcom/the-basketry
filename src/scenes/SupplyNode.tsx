@@ -2,6 +2,7 @@ import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import type { Group, Material, BufferGeometry } from "three";
+import { useSceneStore } from "../store/useSceneStore";
 
 export type SupplyRole = "manufacturer" | "distributor" | "retailer" | "consumer";
 
@@ -41,7 +42,7 @@ export function SupplyNode({ position, role, bobOffset = 0 }: SupplyNodeProps) {
 
   useFrame((state) => {
     if (!groupRef.current) return;
-    const t = state.clock.elapsedTime;
+    const t = state.clock.elapsedTime * useSceneStore.getState().motionScale;
     groupRef.current.position.y = position[1] + Math.sin(t * 0.5 + bobOffset) * 0.08;
     groupRef.current.rotation.y = t * 0.12 + bobOffset;
   });

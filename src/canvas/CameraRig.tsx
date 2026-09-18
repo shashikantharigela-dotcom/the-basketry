@@ -5,6 +5,7 @@ import type { PointLight } from "three";
 import {
   CAMERA_CURVE,
   LOOKAT_CURVE,
+  getCameraParam,
   getStage,
   getStageLocalProgress,
 } from "../narrative/narrativeConfig";
@@ -22,14 +23,21 @@ export function CameraRig() {
     const progress = useSceneStore.getState().progress;
     const t = THREE.MathUtils.clamp(progress, 0, 1);
 
-    CAMERA_CURVE.getPointAt(t, targetPosition);
-    LOOKAT_CURVE.getPointAt(t, targetLookAt);
+    // getPoint (uniform parameter), not getPointAt (arc-length) — with ten
+    // keyframes spaced very unevenly in world distance, arc-length
+    // sampling would decouple camera position from scroll progress. The
+    // curve's own parameter space is then remapped via getCameraParam so
+    // each stage's keyframe lands on that stage's center, not on an
+    // arbitrary i/(N-1) unrelated to our equal-width stage ranges.
+    const camT = getCameraParam(t);
+    CAMERA_CURVE.getPoint(camT, targetPosition);
+    LOOKAT_CURVE.getPoint(camT, targetLookAt);
 
     // A touch of handheld-style tension while the story is at its most
     // fragmented, peaking at the Disconnected Journey stage's center and
     // fading back to a steady dolly everywhere else — never a random spin.
     const localDisconnect = getStageLocalProgress(disconnectedStage, t);
-    const tension = Math.sin(localDisconnect * Math.PI);
+    const tension = Math.sin(localDisconnect * Math.PI) * useSceneStore.getState().motionScale;
     const elapsed = state.clock.elapsedTime;
     targetPosition.x += Math.sin(elapsed * 0.6) * 0.1 * tension;
     targetPosition.y += Math.sin(elapsed * 0.9 + 1.3) * 0.06 * tension;

@@ -92,7 +92,7 @@ export function BasketryHub() {
   );
 
   useFrame((state) => {
-    const t = state.clock.elapsedTime;
+    const t = state.clock.elapsedTime * useSceneStore.getState().motionScale;
     const progress = useSceneStore.getState().progress;
     const localProgress = getStageLocalProgress(stage, progress);
     const spokeReveal = THREE.MathUtils.smoothstep(localProgress, 0.15, 0.65);
