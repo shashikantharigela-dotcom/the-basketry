@@ -34,7 +34,7 @@ export function EcosystemScene() {
 
       <mesh position={[0, -2, -30]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[420, 320]} />
-        <meshStandardMaterial color="#3d0509" roughness={0.95} />
+        <meshStandardMaterial color="#b90710" roughness={0.95} />
       </mesh>
     </group>
   );

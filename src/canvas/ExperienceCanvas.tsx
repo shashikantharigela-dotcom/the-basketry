@@ -14,10 +14,11 @@ export function ExperienceCanvas() {
       <color attach="background" args={["#f20d16"]} />
       <fog attach="fog" args={["#b90710", 9, 34]} />
 
-      {/* Soft ambient gradient (warm red sky, near-black ground) instead of
+      {/* Soft ambient gradient (warm red sky, deep red ground) instead of
           a single flat ambient fill — reinforces the Red World's vertical
-          depth alongside the Backdrop and fog. */}
-      <hemisphereLight args={["#ff5147", "#3d0509", 0.55]} />
+          depth alongside the Backdrop and fog, without ever tinting
+          undersides toward black. */}
+      <hemisphereLight args={["#ff5147", "#b90710", 0.55]} />
       <ambientLight intensity={0.2} color="#fff8ed" />
       <directionalLight position={[6, 8, 5]} intensity={1.25} color="#ffffff" />
       <directionalLight position={[-6, 3, -4]} intensity={0.3} color="#b90710" />

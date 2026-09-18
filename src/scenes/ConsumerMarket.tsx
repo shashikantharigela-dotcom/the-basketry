@@ -3,7 +3,7 @@ import { getStage } from "../narrative/narrativeConfig";
 import { ProductObject } from "./ProductObject";
 
 const PLINTH_GEOMETRY = new THREE.CylinderGeometry(1.6, 1.8, 0.2, 48);
-const PLINTH_MATERIAL = new THREE.MeshStandardMaterial({ color: "#3d0509", roughness: 0.3, metalness: 0.3 });
+const PLINTH_MATERIAL = new THREE.MeshStandardMaterial({ color: "#b90710", roughness: 0.3, metalness: 0.3 });
 
 const CONSUMER_GEOMETRY = new THREE.CapsuleGeometry(0.22, 0.5, 6, 12);
 const CONSUMER_MATERIAL = new THREE.MeshStandardMaterial({ color: "#fff8ed", roughness: 0.3, metalness: 0.05 });

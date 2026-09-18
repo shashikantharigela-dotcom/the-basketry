@@ -19,7 +19,7 @@ const RIM_MATERIAL = new THREE.MeshStandardMaterial({
   emissive: "#f20d16",
   emissiveIntensity: 0.3,
 });
-const HANDLE_MATERIAL = new THREE.MeshStandardMaterial({ color: "#3d0509", roughness: 0.3, metalness: 0.35 });
+const HANDLE_MATERIAL = new THREE.MeshStandardMaterial({ color: "#b90710", roughness: 0.3, metalness: 0.35 });
 const WEAVE_MATERIAL = new THREE.MeshStandardMaterial({ color: "#fff8ed", roughness: 0.35, metalness: 0.05 });
 
 const WEAVE_HEIGHTS = [-0.32, -0.1, 0.12];
