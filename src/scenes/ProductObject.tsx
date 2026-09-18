@@ -3,6 +3,7 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import type { Group } from "three";
+import { useSceneStore } from "../store/useSceneStore";
 
 export type ProductVariant = "carton" | "jar" | "bottle" | "pouch" | "can";
 
@@ -73,7 +74,8 @@ export function ProductObject({
 
   useFrame((_, delta) => {
     if (!groupRef.current) return;
-    groupRef.current.rotation.y += delta * spinSpeed;
+    const motionScale = useSceneStore.getState().motionScale;
+    groupRef.current.rotation.y += delta * spinSpeed * motionScale;
   });
 
   return (

@@ -1,8 +1,12 @@
 import { NarrativeController } from "./narrative/NarrativeController";
 import { ExperienceCanvas } from "./canvas/ExperienceCanvas";
 import { UIOverlay } from "./ui/UIOverlay";
+import { Logo } from "./components/Logo";
+import { usePrefersReducedMotion } from "./hooks/usePrefersReducedMotion";
 
 function App() {
+  usePrefersReducedMotion();
+
   return (
     <div style={{ width: "100%" }}>
       <header
@@ -19,16 +23,7 @@ function App() {
           pointerEvents: "none",
         }}
       >
-        <span
-          style={{
-            fontWeight: 700,
-            letterSpacing: "0.08em",
-            fontSize: "0.95rem",
-            color: "var(--color-ink)",
-          }}
-        >
-          THE BASKETRY
-        </span>
+        <Logo />
         <span
           style={{
             width: 10,
@@ -39,7 +34,7 @@ function App() {
         />
       </header>
 
-      <NarrativeController scrollLengthVh={550}>
+      <NarrativeController scrollLengthVh={1400}>
         <ExperienceCanvas />
         <UIOverlay />
       </NarrativeController>

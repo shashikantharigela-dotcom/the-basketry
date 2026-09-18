@@ -7,7 +7,7 @@ export function ExperienceCanvas() {
   return (
     <Canvas
       style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
-      camera={{ fov: 42, near: 0.1, far: 120, position: [-0.8, 1.5, 14.5] }}
+      camera={{ fov: 42, near: 0.1, far: 260, position: [-0.8, 1.5, 14.5] }}
       dpr={[1, 1.75]}
       gl={{ antialias: true }}
     >
@@ -23,6 +23,9 @@ export function ExperienceCanvas() {
       <directionalLight position={[-6, 3, -4]} intensity={0.3} color="#b90710" />
       <pointLight position={[-3, 2, -10]} intensity={7} color="#ffffff" />
       <pointLight position={[0, 2.5, -28]} intensity={6} color="#ffffff" />
+      <pointLight position={[0, 2.5, -52]} intensity={6} color="#ffffff" />
+      <pointLight position={[0, 2.5, -78]} intensity={6} color="#ffffff" />
+      <pointLight position={[0, 2.5, -103]} intensity={6} color="#ffffff" />
 
       <Backdrop />
       <CameraRig />
