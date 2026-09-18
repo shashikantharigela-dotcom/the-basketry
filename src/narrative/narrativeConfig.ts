@@ -31,14 +31,19 @@ interface RawStageConfig extends Omit<StageConfig, "index"> {}
 
 // Single source of truth for Phase 1's four-stage narrative:
 // PRODUCTS -> BRAND -> DISCONNECTED JOURNEY -> THE BASKETRY
+//
+// Composition rule: the DOM heading always lives in a fixed left text-safe
+// column (see UIOverlay). Every camera.target here is deliberately offset
+// to the left of its stage's anchor, so the 3D content it frames reads on
+// the right two-thirds of the screen and never sits behind the typography.
 const RAW_STAGES: RawStageConfig[] = [
   {
     id: "products",
     range: [0, 0.25],
-    anchor: [-0.6, 0, 8],
+    anchor: [0.7, -0.05, 8],
     camera: {
-      position: [0.6, 1.4, 13],
-      target: [-0.6, 0.2, 8],
+      position: [-0.8, 1.5, 14.5],
+      target: [-0.9, 0.15, 8],
     },
     copy: {
       heading: ["PRODUCTS"],
@@ -52,10 +57,10 @@ const RAW_STAGES: RawStageConfig[] = [
   {
     id: "brand",
     range: [0.25, 0.5],
-    anchor: [1.2, 0.2, -3],
+    anchor: [1.0, 0.1, -3],
     camera: {
-      position: [3.4, 1.7, 2.6],
-      target: [1.0, 0.7, -3],
+      position: [2.6, 1.9, 3.0],
+      target: [-0.6, 0.5, -3],
     },
     copy: {
       heading: ["A GREAT PRODUCT", "NEEDS THE RIGHT JOURNEY."],
@@ -65,10 +70,10 @@ const RAW_STAGES: RawStageConfig[] = [
   {
     id: "disconnected",
     range: [0.5, 0.75],
-    anchor: [0, 0.4, -15],
+    anchor: [0, 0.3, -15],
     camera: {
-      position: [-2.8, 1.2, -10],
-      target: [0.4, 0.1, -15],
+      position: [-4.0, 1.9, -6.0],
+      target: [-1.6, 0.2, -15],
     },
     copy: {
       heading: ["TODAY,", "THE JOURNEY FEELS DISCONNECTED."],
@@ -82,10 +87,10 @@ const RAW_STAGES: RawStageConfig[] = [
   {
     id: "basketry",
     range: [0.75, 1],
-    anchor: [0, 0.3, -28],
+    anchor: [0, 0.25, -28],
     camera: {
-      position: [0, 2.5, -22],
-      target: [0, 0.3, -28],
+      position: [0.6, 2.8, -19.0],
+      target: [-1.4, 0.3, -28],
     },
     copy: {
       heading: ["WHAT IF WE COULD", "CONNECT THE JOURNEY?"],

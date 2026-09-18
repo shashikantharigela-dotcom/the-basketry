@@ -44,7 +44,7 @@ export function FragmentedConnection({
     const len = direction.length();
     const quat = new THREE.Quaternion().setFromUnitVectors(UP, direction.clone().normalize());
 
-    const gapRatio = 0.35;
+    const gapRatio = 0.48;
     const segmentSpan = 1 / fragmentCount;
     const segmentLength = segmentSpan * (1 - gapRatio);
     const frags = Array.from({ length: fragmentCount }, (_, i) => {

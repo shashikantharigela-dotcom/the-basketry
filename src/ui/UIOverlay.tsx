@@ -15,7 +15,11 @@ export function UIOverlay() {
         padding: "0 8vw",
       }}
     >
-      <div style={{ position: "relative", width: "100%", height: "48vh" }}>
+      {/* Fixed text-safe column: the DOM heading and copy always live in
+          this left band, and never grow to fill the full viewport width —
+          the 3D content (see narrativeConfig's camera notes) is framed to
+          stay clear of it. */}
+      <div style={{ position: "relative", width: "min(560px, 46vw)", height: "50vh" }}>
         {STAGES.map((stage) => {
           const opacity = getStageOpacity(stage, progress);
           return (
@@ -47,11 +51,11 @@ export function UIOverlay() {
               <h1
                 style={{
                   margin: 0,
-                  fontSize: "clamp(2.4rem, 6.4vw, 5.4rem)",
+                  fontSize: "clamp(2.1rem, 4.6vw, 4.4rem)",
                   fontWeight: 700,
                   letterSpacing: "-0.02em",
                   color: "var(--color-ink)",
-                  lineHeight: 1.05,
+                  lineHeight: 1.1,
                 }}
               >
                 {stage.copy.heading.map((line, i) => (
@@ -64,29 +68,28 @@ export function UIOverlay() {
               {stage.copy.supportingLine && (
                 <p
                   style={{
-                    marginTop: "0.9rem",
+                    marginTop: "1.1rem",
                     marginBottom: 0,
-                    fontSize: "0.95rem",
+                    fontSize: "0.9rem",
                     letterSpacing: "0.12em",
                     fontWeight: 600,
                     color: "var(--color-white)",
-                    maxWidth: "44ch",
                   }}
                 >
                   {stage.copy.supportingLine}
                 </p>
               )}
 
-              <div style={{ marginTop: "1rem", maxWidth: "34ch" }}>
+              <div style={{ marginTop: "1.2rem" }}>
                 {stage.copy.body.map((line, i) => (
                   <p
                     key={i}
                     style={{
                       margin: 0,
-                      marginTop: i === 0 ? 0 : "0.5rem",
+                      marginTop: i === 0 ? 0 : "0.6rem",
                       fontSize: "1.05rem",
-                      color: "var(--color-ink-soft)",
-                      lineHeight: 1.5,
+                      color: "rgba(255, 255, 255, 0.8)",
+                      lineHeight: 1.6,
                     }}
                   >
                     {line}

@@ -11,18 +11,24 @@ interface ProductItemConfig {
   spinSpeed: number;
 }
 
-// Deterministic, hand-placed cluster — approximates an FMCG shelf pulled
-// apart in space rather than a random scatter, with foreground/background
-// depth and a mix of package forms.
+// A deliberate premium still-life rather than a scatter: a foreground hero
+// pair, a middle-ground row, and a smaller, softer background row — each
+// item spaced so nothing intersects its neighbors, and the whole cluster
+// sits clear of the text-safe column (see narrativeConfig's camera notes).
 const PRODUCT_ITEMS: ProductItemConfig[] = [
-  { variant: "carton", position: [-2.4, 0.6, 1.6], rotation: [0.2, 0.6, 0], scale: 1.1, accent: false, spinSpeed: 0.09 },
-  { variant: "jar", position: [-1.1, -0.4, 2.4], rotation: [0, 0.2, 0], scale: 1, accent: true, spinSpeed: 0.06 },
-  { variant: "bottle", position: [0.6, 0.9, 0.8], rotation: [0, -0.4, 0], scale: 1.15, accent: false, spinSpeed: 0.1 },
-  { variant: "pouch", position: [1.9, -0.6, 1.9], rotation: [0.3, 0.3, 0.1], scale: 1, accent: false, spinSpeed: 0.07 },
-  { variant: "can", position: [-1.8, 0.3, -1.4], rotation: [0, 0.9, 0], scale: 0.9, accent: true, spinSpeed: 0.05 },
-  { variant: "carton", position: [0.4, -1, -2.2], rotation: [0.1, -0.7, 0], scale: 0.85, accent: false, spinSpeed: 0.08 },
-  { variant: "bottle", position: [2.6, 0.5, -1.6], rotation: [0, 0.5, 0], scale: 0.95, accent: false, spinSpeed: 0.11 },
-  { variant: "jar", position: [-3, -0.2, -0.6], rotation: [0, -0.2, 0], scale: 0.8, accent: false, spinSpeed: 0.06 },
+  // Foreground hero pair.
+  { variant: "bottle", position: [0.8, 0.05, 1.6], rotation: [0, -0.35, 0], scale: 1.1, accent: false, spinSpeed: 0.07 },
+  { variant: "jar", position: [-0.6, -0.35, 2.0], rotation: [0, 0.25, 0], scale: 1.05, accent: true, spinSpeed: 0.05 },
+
+  // Middle ground.
+  { variant: "carton", position: [1.9, 0.35, 0.7], rotation: [0, 0.5, 0], scale: 1.05, accent: false, spinSpeed: 0.06 },
+  { variant: "can", position: [0.4, 0.65, -0.3], rotation: [0, -0.6, 0], scale: 0.55, accent: false, spinSpeed: 0.08 },
+  { variant: "pouch", position: [1.0, -0.15, 0.0], rotation: [0.2, 0.15, 0], scale: 0.6, accent: false, spinSpeed: 0.05 },
+
+  // Background, smaller and softer — recedes into the fog.
+  { variant: "carton", position: [1.3, 0.15, -1.4], rotation: [0, -0.2, 0], scale: 0.75, accent: false, spinSpeed: 0.04 },
+  { variant: "bottle", position: [0.6, 0.9, -1.8], rotation: [0, 0.4, 0], scale: 0.7, accent: true, spinSpeed: 0.05 },
+  { variant: "jar", position: [2.0, -0.2, -2.3], rotation: [0, -0.5, 0], scale: 0.65, accent: false, spinSpeed: 0.04 },
 ];
 
 export function ProductCluster() {

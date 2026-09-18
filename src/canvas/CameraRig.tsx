@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
+import type { PointLight } from "three";
 import {
   CAMERA_CURVE,
   LOOKAT_CURVE,
@@ -15,6 +16,7 @@ const disconnectedStage = getStage("disconnected");
 
 export function CameraRig() {
   const currentLookAt = useRef(new THREE.Vector3(0, 0, 0));
+  const fillLightRef = useRef<PointLight>(null);
 
   useFrame((state, delta) => {
     const progress = useSceneStore.getState().progress;
@@ -38,7 +40,18 @@ export function CameraRig() {
     state.camera.position.lerp(targetPosition, dampFactor);
     currentLookAt.current.lerp(targetLookAt, dampFactor);
     state.camera.lookAt(currentLookAt.current);
+
+    // A soft fill/highlight light that travels with the camera, so every
+    // stage gets a gentle specular pop on the glossy materials regardless
+    // of how far it sits along the ~40-unit dolly track.
+    if (fillLightRef.current) {
+      fillLightRef.current.position.set(
+        state.camera.position.x - 1.5,
+        state.camera.position.y + 1.2,
+        state.camera.position.z
+      );
+    }
   });
 
-  return null;
+  return <pointLight ref={fillLightRef} intensity={1.8} distance={13} decay={2} color="#ffffff" />;
 }

@@ -9,13 +9,17 @@ interface NodeConfig {
   bobOffset: number;
 }
 
-// A zig-zagging, staggered-depth arrangement rather than a straight
-// flowchart row — the spatial "friction" is part of the story.
+// A clear left-to-right journey with a mild diagonal (slight depth and
+// height variation), rather than heavy depth staggering — a wide spread
+// in z compresses unevenly in perspective and bunches the nodes back
+// together on screen. Every node's x sits to the right of the camera's
+// look-at target (see narrativeConfig), so even the "leftmost" node in
+// the journey stays clear of the DOM text column.
 const NODES: NodeConfig[] = [
-  { role: "manufacturer", position: [-3.4, 0.7, 1.6], bobOffset: 0 },
-  { role: "distributor", position: [-1.1, -0.5, -0.8], bobOffset: 1.4 },
-  { role: "retailer", position: [1.4, 0.6, -2.6], bobOffset: 2.6 },
-  { role: "consumer", position: [3.6, -0.3, -4.6], bobOffset: 4.1 },
+  { role: "manufacturer", position: [0.6, 1.0, 1.5], bobOffset: 0 },
+  { role: "distributor", position: [2.4, -0.6, 0.5], bobOffset: 1.4 },
+  { role: "retailer", position: [4.2, 0.8, -0.5], bobOffset: 2.6 },
+  { role: "consumer", position: [6.0, -0.5, -1.5], bobOffset: 4.1 },
 ];
 
 export function DisconnectedJourney() {
