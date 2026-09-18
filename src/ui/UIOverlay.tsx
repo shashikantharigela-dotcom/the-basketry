@@ -10,96 +10,103 @@ export function UIOverlay() {
         position: "absolute",
         inset: 0,
         pointerEvents: "none",
-        display: "flex",
-        alignItems: "center",
-        padding: "0 8vw",
       }}
     >
-      {/* Fixed text-safe column: the DOM heading and copy always live in
-          this left band, and never grow to fill the full viewport width —
-          the 3D content (see narrativeConfig's camera notes) is framed to
-          stay clear of it. */}
-      <div style={{ position: "relative", width: "min(560px, 46vw)", height: "50vh" }}>
-        {STAGES.map((stage) => {
-          const opacity = getStageOpacity(stage, progress);
-          return (
-            <div
-              key={stage.id}
+      {/* Each stage gets its own absolutely positioned text-safe column,
+          alternating left/right/center per stage.textSide (see
+          narrativeConfig) — the 3D camera framing mirrors this per stage
+          too (see CameraRig's biasMultiplier), so the content always
+          reads on the side the text isn't. */}
+      {STAGES.map((stage) => {
+        const opacity = getStageOpacity(stage, progress);
+        const isCenter = stage.textSide === "center";
+        return (
+          <div
+            key={stage.id}
+            style={{
+              position: "absolute",
+              // The centered final stage reads as a caption under the wide
+              // aerial reveal rather than vertically centered — dead-center
+              // is exactly where that view frames the Basketry hub, so a
+              // centered text block there would sit right on top of it.
+              top: isCenter ? undefined : 0,
+              bottom: isCenter ? "6vh" : 0,
+              left: isCenter ? "50%" : stage.textSide === "left" ? "8vw" : undefined,
+              right: stage.textSide === "right" ? "8vw" : undefined,
+              width: isCenter ? "min(700px, 70vw)" : "min(560px, 46vw)",
+              transform: isCenter ? "translateX(-50%)" : undefined,
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: isCenter ? "flex-end" : "center",
+              alignItems: isCenter ? "center" : "flex-start",
+              textAlign: isCenter ? "center" : "left",
+              opacity,
+              transition: "opacity 0.05s linear",
+            }}
+          >
+            <span
               style={{
-                position: "absolute",
-                inset: 0,
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "center",
-                opacity,
-                transform: `translateY(${(1 - opacity) * 14}px)`,
-                transition: "opacity 0.05s linear",
+                color: "var(--color-cream)",
+                fontSize: "0.85rem",
+                letterSpacing: "0.35em",
+                fontWeight: 600,
+                marginBottom: "0.75rem",
               }}
             >
-              <span
+              {String(stage.index + 1).padStart(2, "0")}
+            </span>
+
+            <h1
+              style={{
+                margin: 0,
+                fontSize: "clamp(2.1rem, 4.6vw, 4.4rem)",
+                fontWeight: 700,
+                letterSpacing: "-0.02em",
+                color: "var(--color-ink)",
+                lineHeight: 1.1,
+              }}
+            >
+              {stage.copy.heading.map((line, i) => (
+                <span key={i} style={{ display: "block" }}>
+                  {line}
+                </span>
+              ))}
+            </h1>
+
+            {stage.copy.supportingLine && (
+              <p
                 style={{
-                  color: "var(--color-cream)",
-                  fontSize: "0.85rem",
-                  letterSpacing: "0.35em",
+                  marginTop: "1.1rem",
+                  marginBottom: 0,
+                  fontSize: "0.9rem",
+                  letterSpacing: "0.12em",
                   fontWeight: 600,
-                  marginBottom: "0.75rem",
+                  color: "var(--color-white)",
                 }}
               >
-                {String(stage.index + 1).padStart(2, "0")}
-              </span>
+                {stage.copy.supportingLine}
+              </p>
+            )}
 
-              <h1
-                style={{
-                  margin: 0,
-                  fontSize: "clamp(2.1rem, 4.6vw, 4.4rem)",
-                  fontWeight: 700,
-                  letterSpacing: "-0.02em",
-                  color: "var(--color-ink)",
-                  lineHeight: 1.1,
-                }}
-              >
-                {stage.copy.heading.map((line, i) => (
-                  <span key={i} style={{ display: "block" }}>
-                    {line}
-                  </span>
-                ))}
-              </h1>
-
-              {stage.copy.supportingLine && (
+            <div style={{ marginTop: "1.2rem" }}>
+              {stage.copy.body.map((line, i) => (
                 <p
+                  key={i}
                   style={{
-                    marginTop: "1.1rem",
-                    marginBottom: 0,
-                    fontSize: "0.9rem",
-                    letterSpacing: "0.12em",
-                    fontWeight: 600,
-                    color: "var(--color-white)",
+                    margin: 0,
+                    marginTop: i === 0 ? 0 : "0.6rem",
+                    fontSize: "1.05rem",
+                    color: "rgba(255, 255, 255, 0.8)",
+                    lineHeight: 1.6,
                   }}
                 >
-                  {stage.copy.supportingLine}
+                  {line}
                 </p>
-              )}
-
-              <div style={{ marginTop: "1.2rem" }}>
-                {stage.copy.body.map((line, i) => (
-                  <p
-                    key={i}
-                    style={{
-                      margin: 0,
-                      marginTop: i === 0 ? 0 : "0.6rem",
-                      fontSize: "1.05rem",
-                      color: "rgba(255, 255, 255, 0.8)",
-                      lineHeight: 1.6,
-                    }}
-                  >
-                    {line}
-                  </p>
-                ))}
-              </div>
+              ))}
             </div>
-          );
-        })}
-      </div>
+          </div>
+        );
+      })}
 
       <ScrollHint progress={progress} />
     </div>
