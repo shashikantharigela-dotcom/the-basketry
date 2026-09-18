@@ -17,19 +17,23 @@ import * as THREE from "three";
 
 // The road's waypoints — every environment in the story sits at or near
 // one of these, so the whole world is physically one connected place.
-// y stays flat (ground level); x wanders gently; z counts down steadily,
-// so the whole journey reads as one continuous forward drive.
+// y stays flat (ground level); z counts down steadily so the drive
+// always reads as forward motion; x swings widely between points on
+// purpose — this is a real winding road with left/right turns and
+// S-curves, not a straight line with a gentle wobble. The Basketry
+// waypoint (index 5) is the one point every turn resolves back toward
+// center on, so it reads as the road's actual convergence point.
 export const WORLD_PATH_POINTS: Array<[number, number, number]> = [
-  [0.6, -1.3, 10], // factory forecourt — the truck starts loaded here
-  [0.9, -1.3, 2], // leaving the factory
-  [0.5, -1.3, -6], // open road
-  [0.0, -1.3, -15], // the "disconnected" stretch — other parts of the ecosystem visible off to the side, cut off from each other
-  [0.0, -1.3, -23], // approaching the Basketry
-  [0.0, -1.3, -30], // straight through the Basketry plaza
-  [0.3, -1.3, -38], // brand reach
-  [0.2, -1.3, -47], // toward business sourcing
-  [0.0, -1.3, -55], // business sourcing
-  [0.3, -1.3, -64], // consumer market — the truck's final stop
+  [1.0, -1.3, 14], // factory forecourt — the truck starts loaded here
+  [5.5, -1.3, 5], // leaving the factory, curving right
+  [-4.5, -1.3, -5], // swinging left through the open road
+  [4.5, -1.3, -15], // swinging right — the "disconnected" stretch
+  [-1.5, -1.3, -23], // converging back toward center, approaching the Basketry
+  [0.0, -1.3, -31], // straight through the Basketry plaza — the connection point
+  [5.0, -1.3, -39], // brand reach, curving right again
+  [-5.5, -1.3, -48], // swinging left toward business sourcing
+  [3.0, -1.3, -57], // business sourcing, curving right
+  [-2.0, -1.3, -66], // consumer market — the truck's final stop
 ];
 
 export const TRUCK_CURVE = new THREE.CatmullRomCurve3(
@@ -64,6 +68,24 @@ export function computeTruckPose(progress: number, outPosition: THREE.Vector3, o
   TRUCK_CURVE.getTangent(u, outTangent);
 }
 
+/**
+ * The position/tangent/right frame exactly at one of the road's named
+ * waypoints (see WORLD_PATH_POINTS) — how narrativeConfig places each
+ * stage's environment relative to the road at that point (`side` off
+ * to the right of the direction of travel, `along` further forward),
+ * so an environment reads as "beside the road" correctly regardless of
+ * which way the road happens to be turning there, rather than as a
+ * flat world-space offset that only worked back when the road was
+ * nearly straight.
+ */
+export function getPathFrame(index: number): { point: THREE.Vector3; tangent: THREE.Vector3; right: THREE.Vector3 } {
+  const u = index / (WORLD_PATH_POINTS.length - 1);
+  const point = TRUCK_CURVE.getPoint(u);
+  const tangent = TRUCK_CURVE.getTangent(u);
+  const right = new THREE.Vector3().crossVectors(tangent, UP).normalize();
+  return { point, tangent, right };
+}
+
 interface OffsetKeyframe {
   /** Truck-path parameter (0–1), not global scroll progress. */
   u: number;
@@ -84,13 +106,13 @@ interface OffsetKeyframe {
 // narrativeConfig ranges ÷ TRUCK_END_PROGRESS) so the framing changes
 // land with the story beats.
 const OFFSET_KEYFRAMES: OffsetKeyframe[] = [
-  { u: 0.0, back: 7.0, up: 3.2, side: 1.8, lookAhead: 1.8, targetBias: 0.9 },
-  { u: 0.111, back: 10.0, up: 5.0, side: 1.2, lookAhead: 2.0, targetBias: 0.8 },
-  { u: 0.25, back: 10.5, up: 6.0, side: 2.0, lookAhead: 2.4, targetBias: 1.0 },
-  { u: 0.417, back: 8.5, up: 5.5, side: 1.4, lookAhead: 1.8, targetBias: 0.8 },
-  { u: 0.556, back: 11.5, up: 6.5, side: 1.8, lookAhead: 2.0, targetBias: 0.9 },
-  { u: 0.694, back: 10.5, up: 6.0, side: 1.5, lookAhead: 1.8, targetBias: 0.85 },
-  { u: 1.0, back: 5.0, up: 3.0, side: 1.2, lookAhead: 1.4, targetBias: 0.8 },
+  { u: 0.0, back: 9.0, up: 4.5, side: 2.2, lookAhead: 2.2, targetBias: 1.0 },
+  { u: 0.111, back: 13.0, up: 7.0, side: 1.6, lookAhead: 2.6, targetBias: 0.9 },
+  { u: 0.25, back: 14.0, up: 8.0, side: 2.6, lookAhead: 3.0, targetBias: 1.1 },
+  { u: 0.417, back: 12.0, up: 7.5, side: 1.8, lookAhead: 2.2, targetBias: 0.9 },
+  { u: 0.556, back: 15.0, up: 8.5, side: 2.4, lookAhead: 2.6, targetBias: 1.0 },
+  { u: 0.694, back: 14.5, up: 8.5, side: 2.0, lookAhead: 2.2, targetBias: 0.95 },
+  { u: 1.0, back: 10.0, up: 6.5, side: 1.6, lookAhead: 1.6, targetBias: 0.9 },
 ];
 
 function interpolateOffset(u: number): OffsetKeyframe {
@@ -122,25 +144,48 @@ const TENSION_HALF_WIDTH = 0.12;
 
 // A high, wide aerial vantage that takes in the whole world at once —
 // the ecosystem reveal is a camera move, not a new floating diorama.
-const AERIAL_POSITION = new THREE.Vector3(17, 25, 11);
-const AERIAL_TARGET = new THREE.Vector3(0, -1, -28);
+const AERIAL_POSITION = new THREE.Vector3(24, 32, 16);
+const AERIAL_TARGET = new THREE.Vector3(2, -1, -30);
 
 const truckPosition = new THREE.Vector3();
 const truckTangent = new THREE.Vector3();
+const aheadTangent = new THREE.Vector3();
 const right = new THREE.Vector3();
 const chasePosition = new THREE.Vector3();
 const chaseTarget = new THREE.Vector3();
 
+// How far ahead (in truck-curve u) to sample when estimating the road's
+// current turn rate for camera banking.
+const BANK_SAMPLE_DU = 0.01;
+// Roll a few degrees into a turn, like a vehicle leaning through a
+// curve — clamped well short of disorienting, and never applied during
+// the aerial reveal (a level horizon there reads as the "we've arrived
+// at the overview" cue).
+const BANK_GAIN = 0.35;
+const MAX_BANK_RADIANS = THREE.MathUtils.degToRad(10);
+
 /** The camera's raw target position + look-at point for a given global
  * scroll progress. CameraRig damps toward these every frame; this
- * function itself is a pure snapshot, no smoothing. */
+ * function itself is a pure snapshot, no smoothing.
+ *
+ * `biasMultiplier` (+1/-1/0) comes from the active stage's text side
+ * (see narrativeConfig's getTextSideMultiplier) — it mirrors the
+ * camera's own lateral offset and look-at bias so the 3D content
+ * always reads on the side of the screen opposite the DOM text column,
+ * whichever side that is for the current stage.
+ *
+ * Returns the camera's bank (roll) angle in radians, so CameraRig can
+ * apply it via camera.up without this function needing to touch the
+ * camera object directly.
+ */
 export function computeCameraPose(
   progress: number,
   elapsedTime: number,
   motionScale: number,
+  biasMultiplier: number,
   outPosition: THREE.Vector3,
   outTarget: THREE.Vector3
-): void {
+): number {
   const truckU = clamp01(progress / TRUCK_END_PROGRESS);
   computeTruckPose(progress, truckPosition, truckTangent);
   right.crossVectors(truckTangent, UP).normalize();
@@ -150,25 +195,40 @@ export function computeCameraPose(
   chasePosition
     .copy(truckPosition)
     .addScaledVector(truckTangent, -offset.back)
-    .addScaledVector(right, offset.side)
+    .addScaledVector(right, offset.side * biasMultiplier)
     .addScaledVector(UP, offset.up);
 
-  chaseTarget.copy(truckPosition).addScaledVector(truckTangent, offset.lookAhead).addScaledVector(right, -offset.targetBias);
+  chaseTarget
+    .copy(truckPosition)
+    .addScaledVector(truckTangent, offset.lookAhead)
+    .addScaledVector(right, -offset.targetBias * biasMultiplier);
 
   const tensionDistance = Math.abs(truckU - TENSION_CENTER_U) / TENSION_HALF_WIDTH;
   const tension = tensionDistance < 1 ? Math.cos((tensionDistance * Math.PI) / 2) * motionScale : 0;
   chasePosition.x += Math.sin(elapsedTime * 0.6) * 0.12 * tension;
   chasePosition.y += Math.sin(elapsedTime * 0.9 + 1.3) * 0.07 * tension;
 
+  // Signed turn rate: the angle between the current tangent and one a
+  // small step further along the curve, via cross/dot rather than a
+  // difference of atan2(heading)s — the road runs close to due -z for
+  // long stretches, which sits right on atan2's +-pi branch cut and
+  // would otherwise produce a spurious near-2*pi spike in turnRate.
+  TRUCK_CURVE.getTangent(clamp01(truckU + BANK_SAMPLE_DU), aheadTangent);
+  const crossY = truckTangent.z * aheadTangent.x - truckTangent.x * aheadTangent.z;
+  const dot = truckTangent.x * aheadTangent.x + truckTangent.z * aheadTangent.z;
+  const turnRate = Math.atan2(crossY, dot);
+  const bankAngle = THREE.MathUtils.clamp(turnRate * BANK_GAIN, -MAX_BANK_RADIANS, MAX_BANK_RADIANS) * motionScale;
+
   if (progress <= TRUCK_END_PROGRESS) {
     outPosition.copy(chasePosition);
     outTarget.copy(chaseTarget);
-    return;
+    return bankAngle;
   }
 
   const blend = smoothstep01((progress - TRUCK_END_PROGRESS) / (1 - TRUCK_END_PROGRESS));
   outPosition.copy(chasePosition).lerp(AERIAL_POSITION, blend);
   outTarget.copy(chaseTarget).lerp(AERIAL_TARGET, blend);
+  return bankAngle * (1 - blend);
 }
 
 /** How far into the aerial pull-back we are (0 before it starts, 1 once

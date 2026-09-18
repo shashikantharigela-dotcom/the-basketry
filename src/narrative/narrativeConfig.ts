@@ -1,3 +1,6 @@
+import * as THREE from "three";
+import { getPathFrame } from "../world/worldPath";
+
 export type StageId =
   | "products"
   | "brand"
@@ -9,6 +12,13 @@ export type StageId =
   | "ecosystem"
   | "demandLoop"
   | "finalStatement";
+
+/** Which side of the screen this stage's DOM copy lives on — alternated
+ * along the journey (per the reference composition) rather than pinned
+ * to one side for the whole site. "center" is for beats that play out
+ * during the aerial reveal, where a side-biased column would fight the
+ * wide symmetric view. */
+export type TextSide = "left" | "right" | "center";
 
 export interface StageCopy {
   /** Large DOM headline, one array entry per rendered line. */
@@ -25,19 +35,37 @@ export interface StageConfig {
   index: number;
   /** Normalized 0–1 scroll progress this stage's DOM copy owns. Stages tile the full timeline. */
   range: [number, number];
+  textSide: TextSide;
   /**
    * Where this stage's environment sits in the single continuous world
    * (see src/world/worldPath.ts for the road/truck/camera that connects
-   * them all). Ecosystem/Demand Loop/Final Statement don't have a
+   * them all). Computed relative to the road's own local direction at
+   * that waypoint (see anchorFromPath below), not a flat world-space
+   * offset — the road winds now, so "beside it" means something
+   * different at every waypoint. Ecosystem/Demand Loop don't have a
    * dedicated environment of their own — those beats play out as the
-   * camera pulls back to reveal the world already built for the earlier
-   * stages — so their anchors are unused placeholders.
+   * camera pulls back to reveal the world already built for the
+   * earlier stages — so their anchors are unused placeholders.
    */
   anchor: [number, number, number];
   copy: StageCopy;
 }
 
 interface RawStageConfig extends Omit<StageConfig, "index"> {}
+
+/**
+ * Places an environment relative to the road's own heading at one of
+ * WORLD_PATH_POINTS (by index), rather than a flat world-space offset —
+ * `side` is how far to the right of the direction of travel it sits,
+ * `along` how much further forward. That reads correctly as "beside
+ * the road" and "a bit ahead/behind this waypoint" no matter which way
+ * the road happens to be turning at that particular point.
+ */
+function anchorFromPath(pathIndex: number, side: number, along: number, y: number): [number, number, number] {
+  const { point, tangent, right } = getPathFrame(pathIndex);
+  const pos = new THREE.Vector3().copy(point).addScaledVector(right, side).addScaledVector(tangent, along);
+  return [pos.x, y, pos.z];
+}
 
 // Single source of truth for THE BASKETRY's ten-beat narrative copy.
 // This file owns *what the visitor reads and when* — the physical world
@@ -48,7 +76,8 @@ const RAW_STAGES: RawStageConfig[] = [
   {
     id: "products",
     range: [0, 0.08],
-    anchor: [0.7, -0.05, 8],
+    textSide: "left",
+    anchor: anchorFromPath(0, 0.3, 2.0, -0.05),
     copy: {
       heading: ["PRODUCTS"],
       supportingLine: "GOOD PRODUCTS ARE EVERYWHERE.",
@@ -61,7 +90,8 @@ const RAW_STAGES: RawStageConfig[] = [
   {
     id: "brand",
     range: [0.08, 0.18],
-    anchor: [0.9, 0.1, 1],
+    textSide: "left",
+    anchor: anchorFromPath(1, 0, 1.0, 0.1),
     copy: {
       heading: ["A GREAT PRODUCT", "NEEDS THE RIGHT JOURNEY."],
       body: ["The product is packed. The truck arrives. The journey begins."],
@@ -70,7 +100,8 @@ const RAW_STAGES: RawStageConfig[] = [
   {
     id: "disconnected",
     range: [0.18, 0.3],
-    anchor: [3.0, 0.3, -14],
+    textSide: "left",
+    anchor: anchorFromPath(3, 3.0, -1.0, 0.3),
     copy: {
       heading: ["TODAY,", "THE JOURNEY FEELS DISCONNECTED."],
       supportingLine: "MANUFACTURER → DISTRIBUTOR → RETAILER → CONSUMER",
@@ -80,7 +111,8 @@ const RAW_STAGES: RawStageConfig[] = [
   {
     id: "basketry",
     range: [0.3, 0.4],
-    anchor: [0, 0.25, -30],
+    textSide: "right",
+    anchor: anchorFromPath(5, 0, 0, 0.25),
     copy: {
       heading: ["WHAT IF WE COULD", "CONNECT THE JOURNEY?"],
       supportingLine: "PRODUCTS × BRANDS × BUSINESSES × CONSUMERS",
@@ -90,7 +122,8 @@ const RAW_STAGES: RawStageConfig[] = [
   {
     id: "brandReach",
     range: [0.4, 0.5],
-    anchor: [2.2, 0.2, -40],
+    textSide: "left",
+    anchor: anchorFromPath(6, 1.9, 2.0, 0.2),
     copy: {
       heading: ["BRANDS", "REACH FURTHER."],
       supportingLine: "NEW MARKETS. NEW BUSINESSES. NEW OPPORTUNITIES.",
@@ -100,7 +133,8 @@ const RAW_STAGES: RawStageConfig[] = [
   {
     id: "businessSourcing",
     range: [0.5, 0.6],
-    anchor: [-2.5, 0.3, -55],
+    textSide: "right",
+    anchor: anchorFromPath(8, -2.5, 0, 0.3),
     copy: {
       heading: ["BUSINESSES", "SOURCE WITH CONFIDENCE."],
       supportingLine: "PRODUCTS. SUPPLIERS. DISTRIBUTION.",
@@ -110,7 +144,8 @@ const RAW_STAGES: RawStageConfig[] = [
   {
     id: "consumerMarket",
     range: [0.6, 0.72],
-    anchor: [0.3, 0.1, -64],
+    textSide: "left",
+    anchor: anchorFromPath(9, 0, 0, 0.1),
     copy: {
       heading: ["CONSUMERS", "DESERVE BETTER CHOICES."],
       supportingLine: "DISCOVERY, MADE SIMPLE.",
@@ -120,7 +155,8 @@ const RAW_STAGES: RawStageConfig[] = [
   {
     id: "ecosystem",
     range: [0.72, 0.84],
-    anchor: [0, -1, -28],
+    textSide: "right",
+    anchor: anchorFromPath(5, 0, 0, -1),
     copy: {
       heading: ["ONE CONNECTED", "ECOSYSTEM."],
       supportingLine: "PRODUCTS × BRANDS × BUSINESSES × CONSUMERS",
@@ -130,7 +166,8 @@ const RAW_STAGES: RawStageConfig[] = [
   {
     id: "demandLoop",
     range: [0.84, 0.93],
-    anchor: [0, -1, -40],
+    textSide: "left",
+    anchor: anchorFromPath(6, 0, 0, -1),
     copy: {
       heading: ["DEMAND", "FLOWS BACK."],
       supportingLine: "CONSUMER → BUSINESS → THE BASKETRY → BRAND",
@@ -140,7 +177,8 @@ const RAW_STAGES: RawStageConfig[] = [
   {
     id: "finalStatement",
     range: [0.93, 1],
-    anchor: [1.0, 0.15, -65],
+    textSide: "center",
+    anchor: anchorFromPath(9, 2.0, -1.5, 0.15),
     copy: {
       heading: ["ONE BASKET.", "MANY POSSIBILITIES."],
       body: ["Sourcing better. Distributing smarter."],
@@ -191,6 +229,28 @@ export function getStageOpacity(stage: StageConfig, progress: number): number {
 export function getStageLocalProgress(stage: StageConfig, progress: number): number {
   const [start, end] = stage.range;
   return inverseLerp(start, end, progress);
+}
+
+/** The stage whose range currently owns the screen, at a given global
+ * scroll progress. Stage ranges tile [0,1] exactly (each one's `end` is
+ * the next's `start`), so this is well-defined everywhere. */
+export function getActiveStage(progress: number): StageConfig {
+  const clamped = clamp01(progress);
+  for (const stage of STAGES) {
+    if (clamped < stage.range[1]) return stage;
+  }
+  return STAGES[STAGES.length - 1];
+}
+
+/** +1 when the active stage's text sits on the left (bias the 3D
+ * content right), -1 when it sits on the right (bias it left), 0 when
+ * centered (no lateral bias) — see computeCameraPose's `biasMultiplier`
+ * parameter in worldPath.ts. */
+export function getTextSideMultiplier(progress: number): number {
+  const side = getActiveStage(progress).textSide;
+  if (side === "left") return 1;
+  if (side === "right") return -1;
+  return 0;
 }
 
 export function getStage(id: StageId): StageConfig {
