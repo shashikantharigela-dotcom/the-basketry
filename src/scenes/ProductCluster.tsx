@@ -1,6 +1,9 @@
+import * as THREE from "three";
 import { getStage } from "../narrative/narrativeConfig";
 import { ProductObject, type ProductVariant } from "./ProductObject";
 import { useIsMobile } from "../hooks/useIsMobile";
+import { DioramaBase } from "./kit/DioramaBase";
+import { MiniTree } from "./kit/Vegetation";
 
 interface ProductItemConfig {
   variant: ProductVariant;
@@ -31,6 +34,11 @@ const PRODUCT_ITEMS: ProductItemConfig[] = [
   { variant: "jar", position: [2.0, -0.2, -2.3], rotation: [0, -0.5, 0], scale: 0.65, accent: false, spinSpeed: 0.04 },
 ];
 
+const BACKDROP_MATERIAL = new THREE.MeshStandardMaterial({ color: "#171717", roughness: 0.55, metalness: 0.1 });
+
+/** A premium miniature product environment: a bevelled display plinth
+ * with a backdrop wall and a touch of landscaping, not products floating
+ * in the void. */
 export function ProductCluster() {
   const stage = getStage("products");
   const isMobile = useIsMobile();
@@ -38,6 +46,12 @@ export function ProductCluster() {
 
   return (
     <group position={stage.anchor}>
+      <DioramaBase position={[1.0, -1.0, -0.2]} width={5.4} depth={3.8} height={0.3} />
+      <mesh material={BACKDROP_MATERIAL} position={[1.0, 0.35, -3.1]}>
+        <boxGeometry args={[5.6, 2.4, 0.14]} />
+      </mesh>
+      <MiniTree position={[3.1, -0.85, -1.4]} scale={1.3} />
+
       {items.map((item, i) => (
         <ProductObject key={i} {...item} />
       ))}

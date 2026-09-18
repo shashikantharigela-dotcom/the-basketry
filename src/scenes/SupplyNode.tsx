@@ -1,8 +1,9 @@
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import type { Group, Material, BufferGeometry } from "three";
+import type { Group } from "three";
 import { useSceneStore } from "../store/useSceneStore";
+import { MiniBuilding, type RoofType } from "./kit/MiniBuilding";
 
 export type SupplyRole = "manufacturer" | "distributor" | "retailer" | "consumer";
 
@@ -12,44 +13,54 @@ export interface SupplyNodeProps {
   bobOffset?: number;
 }
 
-const MANUFACTURER_GEOMETRY = new THREE.BoxGeometry(0.7, 0.7, 0.7);
-const DISTRIBUTOR_GEOMETRY = new THREE.OctahedronGeometry(0.55, 0);
-const RETAILER_GEOMETRY = new THREE.BoxGeometry(0.5, 0.9, 0.5);
-const CONSUMER_GEOMETRY = new THREE.SphereGeometry(0.42, 32, 32);
+const FRAGMENT_GEOMETRY = new THREE.CylinderGeometry(0.85, 0.95, 0.16, 24);
+const FRAGMENT_MATERIAL = new THREE.MeshStandardMaterial({ color: "#3a3a3a", roughness: 0.7, metalness: 0.1 });
 
-const DARK_MATERIAL = new THREE.MeshStandardMaterial({ color: "#171717", roughness: 0.35, metalness: 0.35 });
-const WHITE_MATERIAL = new THREE.MeshStandardMaterial({ color: "#ffffff", roughness: 0.2, metalness: 0.1 });
-const ACCENT_MATERIAL = new THREE.MeshStandardMaterial({ color: "#f20d16", roughness: 0.25, metalness: 0.15 });
+interface RoleConfig {
+  roofType: RoofType;
+  width: number;
+  depth: number;
+  wallHeight: number;
+  chimney: boolean;
+  sign: boolean;
+  accent: boolean;
+}
 
-const ROLE_GEOMETRY: Record<SupplyRole, BufferGeometry> = {
-  manufacturer: MANUFACTURER_GEOMETRY,
-  distributor: DISTRIBUTOR_GEOMETRY,
-  retailer: RETAILER_GEOMETRY,
-  consumer: CONSUMER_GEOMETRY,
+// Each role reads as a distinct small building, not an abstract
+// primitive — a factory, a warehouse, a storefront, a house.
+const ROLE_CONFIG: Record<SupplyRole, RoleConfig> = {
+  manufacturer: { roofType: "sawtooth", width: 1.3, depth: 1.0, wallHeight: 0.7, chimney: true, sign: false, accent: false },
+  distributor: { roofType: "flat", width: 1.5, depth: 1.1, wallHeight: 0.6, chimney: false, sign: false, accent: false },
+  retailer: { roofType: "gable", width: 1.0, depth: 0.9, wallHeight: 0.55, chimney: false, sign: true, accent: true },
+  consumer: { roofType: "gable", width: 0.75, depth: 0.7, wallHeight: 0.45, chimney: false, sign: false, accent: true },
 };
 
-const ROLE_MATERIAL: Record<SupplyRole, Material> = {
-  manufacturer: DARK_MATERIAL,
-  distributor: WHITE_MATERIAL,
-  retailer: ACCENT_MATERIAL,
-  consumer: WHITE_MATERIAL,
-};
-
-/** One node in the disconnected supply chain — abstract, unlabeled geometry
- * distinguished by form rather than text, drifting gently in place. */
+/** One isolated fragment of the supply chain — a small building on its
+ * own broken-off patch of ground, drifting and swaying gently apart
+ * from the others, rather than a single abstract shape. */
 export function SupplyNode({ position, role, bobOffset = 0 }: SupplyNodeProps) {
   const groupRef = useRef<Group>(null);
+  const config = ROLE_CONFIG[role];
 
   useFrame((state) => {
     if (!groupRef.current) return;
     const t = state.clock.elapsedTime * useSceneStore.getState().motionScale;
-    groupRef.current.position.y = position[1] + Math.sin(t * 0.5 + bobOffset) * 0.08;
-    groupRef.current.rotation.y = t * 0.12 + bobOffset;
+    groupRef.current.position.y = position[1] + Math.sin(t * 0.5 + bobOffset) * 0.05;
+    groupRef.current.rotation.y = Math.sin(t * 0.1 + bobOffset) * 0.15;
   });
 
   return (
     <group ref={groupRef} position={position}>
-      <mesh geometry={ROLE_GEOMETRY[role]} material={ROLE_MATERIAL[role]} />
+      <mesh geometry={FRAGMENT_GEOMETRY} material={FRAGMENT_MATERIAL} position={[0, -0.08, 0]} />
+      <MiniBuilding
+        width={config.width}
+        depth={config.depth}
+        wallHeight={config.wallHeight}
+        roofType={config.roofType}
+        chimney={config.chimney}
+        sign={config.sign}
+        accent={config.accent}
+      />
     </group>
   );
 }
