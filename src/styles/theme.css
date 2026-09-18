@@ -1,0 +1,39 @@
+:root {
+  /* Basketry Red World — red is the primary environment color.
+     White carries typography, structure, and connection highlights.
+     Dark and cream are used sparingly, as depth and accent only. */
+  --color-bg: #f20d16;
+  --color-bg-rgb: 242, 13, 22;
+  --color-red: #f20d16;
+  --color-red-deep: #b90710;
+  --color-dark: #171717;
+  --color-cream: #fff8ed;
+  --color-white: #ffffff;
+
+  --color-ink: #ffffff;
+  --color-ink-soft: rgba(255, 255, 255, 0.72);
+
+  --font-display: "Helvetica Neue", "Inter", Arial, sans-serif;
+
+  --ease-cinematic: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  overflow-x: hidden;
+  width: 100%;
+}
+
+#root {
+  overflow-x: hidden;
+  width: 100%;
+}
