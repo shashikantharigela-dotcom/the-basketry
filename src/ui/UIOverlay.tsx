@@ -15,7 +15,7 @@ export function UIOverlay() {
         padding: "0 8vw",
       }}
     >
-      <div style={{ position: "relative", width: "100%", height: "40vh" }}>
+      <div style={{ position: "relative", width: "100%", height: "48vh" }}>
         {STAGES.map((stage) => {
           const opacity = getStageOpacity(stage, progress);
           return (
@@ -28,7 +28,7 @@ export function UIOverlay() {
                 flexDirection: "column",
                 justifyContent: "center",
                 opacity,
-                transform: `translateY(${(1 - opacity) * 12}px)`,
+                transform: `translateY(${(1 - opacity) * 14}px)`,
                 transition: "opacity 0.05s linear",
               }}
             >
@@ -41,30 +41,58 @@ export function UIOverlay() {
                   marginBottom: "0.75rem",
                 }}
               >
-                {String(STAGES.indexOf(stage) + 1).padStart(2, "0")}
+                {String(stage.index + 1).padStart(2, "0")}
               </span>
+
               <h1
                 style={{
                   margin: 0,
-                  fontSize: "clamp(2.5rem, 7vw, 6rem)",
+                  fontSize: "clamp(2.4rem, 6.4vw, 5.4rem)",
                   fontWeight: 700,
                   letterSpacing: "-0.02em",
                   color: "var(--color-ink)",
-                  lineHeight: 1,
+                  lineHeight: 1.05,
                 }}
               >
-                {stage.label}
+                {stage.copy.heading.map((line, i) => (
+                  <span key={i} style={{ display: "block" }}>
+                    {line}
+                  </span>
+                ))}
               </h1>
-              <p
-                style={{
-                  marginTop: "1rem",
-                  maxWidth: "32ch",
-                  fontSize: "1.05rem",
-                  color: "var(--color-ink-soft)",
-                }}
-              >
-                {stage.sublabel}
-              </p>
+
+              {stage.copy.supportingLine && (
+                <p
+                  style={{
+                    marginTop: "0.9rem",
+                    marginBottom: 0,
+                    fontSize: "0.95rem",
+                    letterSpacing: "0.12em",
+                    fontWeight: 600,
+                    color: "var(--color-white)",
+                    maxWidth: "44ch",
+                  }}
+                >
+                  {stage.copy.supportingLine}
+                </p>
+              )}
+
+              <div style={{ marginTop: "1rem", maxWidth: "34ch" }}>
+                {stage.copy.body.map((line, i) => (
+                  <p
+                    key={i}
+                    style={{
+                      margin: 0,
+                      marginTop: i === 0 ? 0 : "0.5rem",
+                      fontSize: "1.05rem",
+                      color: "var(--color-ink-soft)",
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    {line}
+                  </p>
+                ))}
+              </div>
             </div>
           );
         })}
@@ -76,7 +104,7 @@ export function UIOverlay() {
 }
 
 function ScrollHint({ progress }: { progress: number }) {
-  if (progress > 0.05) return null;
+  if (progress > 0.04) return null;
   return (
     <div
       style={{

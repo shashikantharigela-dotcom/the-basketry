@@ -1,0 +1,92 @@
+import { useRef } from "react";
+import { useFrame } from "@react-three/fiber";
+import * as THREE from "three";
+import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
+import type { Group } from "three";
+
+export type ProductVariant = "carton" | "jar" | "bottle" | "pouch" | "can";
+
+export interface ProductObjectProps {
+  position: [number, number, number];
+  rotation?: [number, number, number];
+  scale?: number;
+  variant: ProductVariant;
+  accent?: boolean;
+  spinSpeed?: number;
+}
+
+// Shared geometries/materials — created once and reused across every
+// ProductObject instance rather than per-mesh, so an 8-object cluster costs
+// a handful of draw calls' worth of GPU state, not eight unique ones.
+const CARTON_GEOMETRY = new RoundedBoxGeometry(0.62, 0.9, 0.4, 3, 0.06);
+const JAR_BODY_GEOMETRY = new THREE.CylinderGeometry(0.34, 0.34, 0.62, 24);
+const JAR_LID_GEOMETRY = new THREE.CylinderGeometry(0.36, 0.36, 0.1, 24);
+const BOTTLE_BODY_GEOMETRY = new THREE.CylinderGeometry(0.22, 0.28, 0.74, 20);
+const BOTTLE_NECK_GEOMETRY = new THREE.CylinderGeometry(0.1, 0.14, 0.22, 16);
+const POUCH_GEOMETRY = new THREE.CapsuleGeometry(0.26, 0.34, 6, 12);
+const CAN_GEOMETRY = new THREE.CylinderGeometry(0.28, 0.28, 0.68, 24);
+
+const WHITE_MATERIAL = new THREE.MeshStandardMaterial({
+  color: "#ffffff",
+  roughness: 0.18,
+  metalness: 0.06,
+});
+
+const ACCENT_MATERIAL = new THREE.MeshStandardMaterial({
+  color: "#f20d16",
+  roughness: 0.22,
+  metalness: 0.1,
+});
+
+const CAP_MATERIAL = new THREE.MeshStandardMaterial({
+  color: "#171717",
+  roughness: 0.3,
+  metalness: 0.5,
+});
+
+export function ProductObject({
+  position,
+  rotation = [0, 0, 0],
+  scale = 1,
+  variant,
+  accent = false,
+  spinSpeed = 0.08,
+}: ProductObjectProps) {
+  const groupRef = useRef<Group>(null);
+  const bodyMaterial = accent ? ACCENT_MATERIAL : WHITE_MATERIAL;
+
+  useFrame((_, delta) => {
+    if (!groupRef.current) return;
+    groupRef.current.rotation.y += delta * spinSpeed;
+  });
+
+  return (
+    <group ref={groupRef} position={position} rotation={rotation} scale={scale}>
+      {variant === "carton" && <mesh geometry={CARTON_GEOMETRY} material={bodyMaterial} />}
+
+      {variant === "jar" && (
+        <>
+          <mesh geometry={JAR_BODY_GEOMETRY} material={bodyMaterial} />
+          <mesh geometry={JAR_LID_GEOMETRY} material={CAP_MATERIAL} position={[0, 0.36, 0]} />
+        </>
+      )}
+
+      {variant === "bottle" && (
+        <>
+          <mesh geometry={BOTTLE_BODY_GEOMETRY} material={bodyMaterial} />
+          <mesh
+            geometry={BOTTLE_NECK_GEOMETRY}
+            material={accent ? ACCENT_MATERIAL : CAP_MATERIAL}
+            position={[0, 0.48, 0]}
+          />
+        </>
+      )}
+
+      {variant === "pouch" && (
+        <mesh geometry={POUCH_GEOMETRY} material={bodyMaterial} rotation={[0, 0, Math.PI / 2]} />
+      )}
+
+      {variant === "can" && <mesh geometry={CAN_GEOMETRY} material={bodyMaterial} />}
+    </group>
+  );
+}
