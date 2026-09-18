@@ -39,7 +39,7 @@ function App() {
         />
       </header>
 
-      <NarrativeController scrollLengthVh={400}>
+      <NarrativeController scrollLengthVh={550}>
         <ExperienceCanvas />
         <UIOverlay />
       </NarrativeController>
