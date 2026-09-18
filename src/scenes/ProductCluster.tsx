@@ -34,7 +34,7 @@ const PRODUCT_ITEMS: ProductItemConfig[] = [
   { variant: "jar", position: [2.0, -0.2, -2.3], rotation: [0, -0.5, 0], scale: 0.65, accent: false, spinSpeed: 0.04 },
 ];
 
-const BACKDROP_MATERIAL = new THREE.MeshStandardMaterial({ color: "#3d0509", roughness: 0.55, metalness: 0.1 });
+const BACKDROP_MATERIAL = new THREE.MeshStandardMaterial({ color: "#b90710", roughness: 0.55, metalness: 0.1 });
 
 /** A premium miniature product environment: a bevelled display plinth
  * with a backdrop wall and a touch of landscaping, not products floating

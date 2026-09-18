@@ -7,7 +7,7 @@ const RING_GEOMETRY = new THREE.TorusGeometry(0.85, 0.05, 12, 48);
 const MARKER_GEOMETRY = new THREE.IcosahedronGeometry(0.16, 0);
 const PLINTH_GEOMETRY = new THREE.CylinderGeometry(1.0, 1.1, 0.3, 32);
 
-const PLINTH_MATERIAL = new THREE.MeshStandardMaterial({ color: "#3d0509", roughness: 0.45, metalness: 0.2 });
+const PLINTH_MATERIAL = new THREE.MeshStandardMaterial({ color: "#b90710", roughness: 0.45, metalness: 0.2 });
 const EMBLEM_MATERIAL = new THREE.MeshStandardMaterial({ color: "#ffffff", roughness: 0.18, metalness: 0.12 });
 const RING_MATERIAL = new THREE.MeshStandardMaterial({
   color: "#f20d16",

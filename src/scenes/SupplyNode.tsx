@@ -14,7 +14,7 @@ export interface SupplyNodeProps {
 }
 
 const FRAGMENT_GEOMETRY = new THREE.CylinderGeometry(0.85, 0.95, 0.16, 24);
-const FRAGMENT_MATERIAL = new THREE.MeshStandardMaterial({ color: "#4a0710", roughness: 0.7, metalness: 0.1 });
+const FRAGMENT_MATERIAL = new THREE.MeshStandardMaterial({ color: "#fff8ed", roughness: 0.7, metalness: 0.1 });
 
 interface RoleConfig {
   roofType: RoofType;

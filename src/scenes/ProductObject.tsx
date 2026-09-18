@@ -48,7 +48,7 @@ const ACCENT_MATERIAL = new THREE.MeshStandardMaterial({
 });
 
 const CAP_MATERIAL = new THREE.MeshStandardMaterial({
-  color: "#3d0509",
+  color: "#b90710",
   roughness: 0.24,
   metalness: 0.55,
 });

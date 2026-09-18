@@ -5,12 +5,12 @@ export interface MiniTreeProps {
   scale?: number;
 }
 
-const TRUNK_MATERIAL = new THREE.MeshStandardMaterial({ color: "#3d0509", roughness: 0.6, metalness: 0.1 });
+const TRUNK_MATERIAL = new THREE.MeshStandardMaterial({ color: "#b90710", roughness: 0.6, metalness: 0.1 });
 const FOLIAGE_MATERIAL = new THREE.MeshStandardMaterial({ color: "#fff8ed", roughness: 0.5, metalness: 0.05 });
 
 /** A stylized, on-brand tree (cream foliage rather than green) — quiet
  * landscaping that reads as "outdoor plaza" without breaking the
- * red/white/black/cream palette. */
+ * red/white/cream Red World palette. */
 export function MiniTree({ position = [0, 0, 0], scale = 1 }: MiniTreeProps) {
   return (
     <group position={position} scale={scale}>

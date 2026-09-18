@@ -15,7 +15,7 @@ const HEIGHT_SEGMENTS = 24;
 function buildGradientGeometry(): THREE.SphereGeometry {
   const geometry = new THREE.SphereGeometry(RADIUS, WIDTH_SEGMENTS, HEIGHT_SEGMENTS);
   const top = new THREE.Color("#f20d16");
-  const bottom = new THREE.Color("#7a0710");
+  const bottom = new THREE.Color("#b90710");
   const sample = new THREE.Color();
   const colors: number[] = [];
   const position = geometry.attributes.position;
