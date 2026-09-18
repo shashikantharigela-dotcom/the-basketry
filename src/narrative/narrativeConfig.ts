@@ -90,8 +90,14 @@ const RAW_STAGES: RawStageConfig[] = [
   {
     id: "brand",
     range: [0.08, 0.18],
-    textSide: "left",
-    anchor: anchorFromPath(1, 0, 1.0, 0.1),
+    textSide: "right",
+    // Shifted well left of the road's own centerline here (rather than
+    // sitting right on it) — the road swings hard right at this
+    // waypoint, and with the text now on the right too, leaving the
+    // factory on-path put it right behind the text column regardless
+    // of camera bias. Still the same factory, still beside the same
+    // road, just off to its left instead of glued to the centerline.
+    anchor: anchorFromPath(1, -5.5, 1.0, 0.1),
     copy: {
       heading: ["A GREAT PRODUCT", "NEEDS THE RIGHT JOURNEY."],
       body: ["The product is packed. The truck arrives. The journey begins."],
