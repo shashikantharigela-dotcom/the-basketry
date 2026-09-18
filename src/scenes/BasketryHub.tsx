@@ -17,7 +17,7 @@ const RIB_RADIUS = 1.15;
 const RIB_COUNT = 7;
 const RIB_GEOMETRY = new THREE.TorusGeometry(RIB_RADIUS, 0.032, 8, lod ? 24 : 32, Math.PI);
 
-const PLAZA_MATERIAL = new THREE.MeshStandardMaterial({ color: "#171717", roughness: 0.5, metalness: 0.2 });
+const PLAZA_MATERIAL = new THREE.MeshStandardMaterial({ color: "#3d0509", roughness: 0.5, metalness: 0.2 });
 const RIM_MATERIAL = new THREE.MeshStandardMaterial({
   color: "#f20d16",
   roughness: 0.25,
@@ -45,7 +45,7 @@ const PATH_MATERIAL = new THREE.MeshStandardMaterial({
 });
 
 const WHITE_NODE_MATERIAL = new THREE.MeshStandardMaterial({ color: "#ffffff", roughness: 0.18, metalness: 0.1 });
-const DARK_NODE_MATERIAL = new THREE.MeshStandardMaterial({ color: "#171717", roughness: 0.3, metalness: 0.4 });
+const DARK_NODE_MATERIAL = new THREE.MeshStandardMaterial({ color: "#3d0509", roughness: 0.3, metalness: 0.4 });
 const ACCENT_NODE_MATERIAL = new THREE.MeshStandardMaterial({
   color: "#f20d16",
   roughness: 0.22,
@@ -94,7 +94,7 @@ export function BasketryHub() {
   });
 
   return (
-    <group position={stage.anchor} scale={1.25}>
+    <group position={[stage.anchor[0], -1.3, stage.anchor[2]]} scale={1.25}>
       <mesh geometry={PLAZA_GEOMETRY} material={PLAZA_MATERIAL} />
       <mesh geometry={PLAZA_RIM_GEOMETRY} material={RIM_MATERIAL} position={[0, 0.075, 0]} rotation={[Math.PI / 2, 0, 0]} />
 

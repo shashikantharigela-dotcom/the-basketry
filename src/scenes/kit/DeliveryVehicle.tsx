@@ -8,8 +8,8 @@ export interface DeliveryVehicleProps {
 
 const CAB_MATERIAL = new THREE.MeshStandardMaterial({ color: "#ffffff", roughness: 0.25, metalness: 0.15 });
 const CARGO_MATERIAL = new THREE.MeshStandardMaterial({ color: "#f20d16", roughness: 0.3, metalness: 0.1 });
-const WHEEL_MATERIAL = new THREE.MeshStandardMaterial({ color: "#171717", roughness: 0.5, metalness: 0.2 });
-const WINDOW_MATERIAL = new THREE.MeshStandardMaterial({ color: "#171717", roughness: 0.15, metalness: 0.4 });
+const WHEEL_MATERIAL = new THREE.MeshStandardMaterial({ color: "#3d0509", roughness: 0.5, metalness: 0.2 });
+const WINDOW_MATERIAL = new THREE.MeshStandardMaterial({ color: "#3d0509", roughness: 0.15, metalness: 0.4 });
 
 const WHEEL_POSITIONS: Array<[number, number, number]> = [
   [-0.55, -0.02, 0.28],

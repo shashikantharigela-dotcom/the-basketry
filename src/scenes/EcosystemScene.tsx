@@ -5,55 +5,36 @@ import { BasketryHub } from "./BasketryHub";
 import { BrandReach } from "./BrandReach";
 import { BusinessHub } from "./BusinessHub";
 import { ConsumerMarket } from "./ConsumerMarket";
-import { EcosystemWeb } from "./EcosystemWeb";
-import { DemandLoop } from "./DemandLoop";
 import { BasketIcon } from "./BasketIcon";
-import { StageVisibility } from "./StageVisibility";
+import { WorldRoad } from "./WorldRoad";
+import { Truck } from "./Truck";
 
-/** The full ten-stage world, laid out along the camera's dolly track.
- * Each stage occupies its own depth slice and is explicitly hidden
- * outside its own scroll range (StageVisibility) so a neighboring stage
- * never reads through in the background — fog and framing alone aren't
- * a reliable enough separation. */
+/**
+ * ONE continuous miniature world, not ten slides: every environment
+ * below is simply placed at its spot along the road (see
+ * src/world/worldPath.ts) and left mounted for the whole journey. There
+ * is no per-stage show/hide here on purpose — the camera moving toward
+ * and away from each one, plus fog softening the far distance, is what
+ * makes things "enter and leave naturally" instead of cutting.
+ */
 export function EcosystemScene() {
   return (
     <group>
-      <StageVisibility stageId="products">
-        <ProductCluster />
-      </StageVisibility>
-      <StageVisibility stageId="brand">
-        <BrandStructure />
-      </StageVisibility>
-      <StageVisibility stageId="disconnected">
-        <DisconnectedJourney />
-      </StageVisibility>
-      <StageVisibility stageId="basketry">
-        <BasketryHub />
-      </StageVisibility>
-      <StageVisibility stageId="brandReach">
-        <BrandReach />
-      </StageVisibility>
-      <StageVisibility stageId="businessSourcing">
-        <BusinessHub />
-      </StageVisibility>
-      <StageVisibility stageId="consumerMarket">
-        <ConsumerMarket />
-      </StageVisibility>
-      <StageVisibility stageId="ecosystem">
-        <EcosystemWeb />
-      </StageVisibility>
-      <StageVisibility stageId="demandLoop">
-        <DemandLoop />
-      </StageVisibility>
-      <StageVisibility stageId="finalStatement">
-        <BasketIcon />
-      </StageVisibility>
+      <WorldRoad />
+      <Truck />
 
-      {/* Wide enough in X to stay under the frame even for the more
-          oblique camera keyframes, not just straight-down-the-track shots. */}
-      <mesh position={[0, -2, -55]} rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[400, 260]} />
-        <meshStandardMaterial color="#171717" roughness={0.95} />
+      <ProductCluster />
+      <BrandStructure />
+      <DisconnectedJourney />
+      <BasketryHub />
+      <BrandReach />
+      <BusinessHub />
+      <ConsumerMarket />
+      <BasketIcon />
+
+      <mesh position={[0, -2, -30]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[420, 320]} />
+        <meshStandardMaterial color="#3d0509" roughness={0.95} />
       </mesh>
     </group>
   );

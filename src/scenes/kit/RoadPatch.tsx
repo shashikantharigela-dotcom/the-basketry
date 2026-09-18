@@ -7,7 +7,7 @@ export interface RoadPatchProps {
   length?: number;
 }
 
-const ROAD_MATERIAL = new THREE.MeshStandardMaterial({ color: "#2a2a2a", roughness: 0.85, metalness: 0.05 });
+const ROAD_MATERIAL = new THREE.MeshStandardMaterial({ color: "#4a0710", roughness: 0.85, metalness: 0.05 });
 const LINE_MATERIAL = new THREE.MeshStandardMaterial({ color: "#fff8ed", roughness: 0.5, metalness: 0.05 });
 
 /** A paved patch with a center line — grounds a building in an actual

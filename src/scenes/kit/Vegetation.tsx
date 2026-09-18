@@ -5,7 +5,7 @@ export interface MiniTreeProps {
   scale?: number;
 }
 
-const TRUNK_MATERIAL = new THREE.MeshStandardMaterial({ color: "#171717", roughness: 0.6, metalness: 0.1 });
+const TRUNK_MATERIAL = new THREE.MeshStandardMaterial({ color: "#3d0509", roughness: 0.6, metalness: 0.1 });
 const FOLIAGE_MATERIAL = new THREE.MeshStandardMaterial({ color: "#fff8ed", roughness: 0.5, metalness: 0.05 });
 
 /** A stylized, on-brand tree (cream foliage rather than green) — quiet
