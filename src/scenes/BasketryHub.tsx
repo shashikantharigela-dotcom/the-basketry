@@ -9,9 +9,9 @@ import { isNarrowViewport } from "../hooks/useIsMobile";
 
 const lod = isNarrowViewport();
 
-const CORE_GEOMETRY = new THREE.SphereGeometry(1, lod ? 28 : 48, lod ? 28 : 48);
-const RING_GEOMETRY = new THREE.TorusGeometry(1.35, 0.03, 16, lod ? 48 : 96);
-const SPOKE_GEOMETRY = new THREE.CylinderGeometry(0.022, 0.022, 1, 8);
+const CORE_GEOMETRY = new THREE.SphereGeometry(1.1, lod ? 28 : 48, lod ? 28 : 48);
+const RING_GEOMETRY = new THREE.TorusGeometry(1.42, 0.055, 16, lod ? 48 : 96);
+const SPOKE_GEOMETRY = new THREE.CylinderGeometry(0.045, 0.045, 1, 8);
 
 const CORE_MATERIAL = new THREE.MeshStandardMaterial({
   color: "#171717",
@@ -22,7 +22,16 @@ const CORE_MATERIAL = new THREE.MeshStandardMaterial({
 });
 
 const RING_MATERIAL = new THREE.MeshStandardMaterial({ color: "#ffffff", roughness: 0.28, metalness: 0.2 });
-const SPOKE_MATERIAL = new THREE.MeshStandardMaterial({ color: "#ffffff", roughness: 0.3, metalness: 0.1 });
+
+// Brighter and thicker than a plain structural spoke, with a soft white
+// glow — reads as a freshly resolved connection, not just a static rod.
+const SPOKE_MATERIAL = new THREE.MeshStandardMaterial({
+  color: "#ffffff",
+  roughness: 0.22,
+  metalness: 0.15,
+  emissive: "#ffffff",
+  emissiveIntensity: 0.3,
+});
 
 const WHITE_NODE_MATERIAL = new THREE.MeshStandardMaterial({ color: "#ffffff", roughness: 0.18, metalness: 0.1 });
 const DARK_NODE_MATERIAL = new THREE.MeshStandardMaterial({ color: "#171717", roughness: 0.3, metalness: 0.4 });
@@ -39,12 +48,12 @@ const ACCENT_NODE_MATERIAL = new THREE.MeshStandardMaterial({
 // businesses, consumers, plus two supporting nodes) rather than electrons
 // around a nucleus.
 const NODE_GEOMETRIES: BufferGeometry[] = [
-  new THREE.BoxGeometry(0.34, 0.34, 0.34),
-  new THREE.CapsuleGeometry(0.14, 0.22, 4, 8),
-  new RoundedBoxGeometry(0.32, 0.32, 0.32, 2, 0.07),
-  new THREE.CylinderGeometry(0.16, 0.16, 0.36, 16),
-  new THREE.ConeGeometry(0.2, 0.34, 16),
-  new THREE.IcosahedronGeometry(0.22, 0),
+  new THREE.BoxGeometry(0.39, 0.39, 0.39),
+  new THREE.CapsuleGeometry(0.16, 0.25, 4, 8),
+  new RoundedBoxGeometry(0.37, 0.37, 0.37, 2, 0.08),
+  new THREE.CylinderGeometry(0.18, 0.18, 0.41, 16),
+  new THREE.ConeGeometry(0.23, 0.39, 16),
+  new THREE.IcosahedronGeometry(0.25, 0),
 ];
 
 const NODE_MATERIALS: Material[] = [
@@ -63,11 +72,12 @@ const ORBIT_NODE_COUNT = 6;
 const RING_TILT = 0.32;
 const UP = new THREE.Vector3(0, 1, 0);
 
-/** The central ecosystem hub: a dark core, two tumbling white rings, six
- * distinct orbiting participant nodes riding a single stable tilted ring
- * (not an atomic wobble), and spokes that extend from the core to each
- * node as this stage's local progress advances — the Disconnected
- * Journey's broken lines resolving into one connected system. */
+/** The central ecosystem hub — the experience's visual climax: a dark
+ * core, two tumbling white rings, six distinct orbiting participant nodes
+ * riding a single stable tilted ring (not an atomic wobble), and thicker,
+ * softly glowing spokes that extend from the core to each node as this
+ * stage's local progress advances — the Disconnected Journey's broken
+ * lines visibly resolving into one connected system. */
 export function BasketryHub() {
   const stage = getStage("basketry");
   const ringOuterRef = useRef<Mesh>(null);
@@ -115,7 +125,7 @@ export function BasketryHub() {
   });
 
   return (
-    <group position={stage.anchor}>
+    <group position={stage.anchor} scale={1.4}>
       <mesh geometry={CORE_GEOMETRY} material={CORE_MATERIAL} />
       <mesh ref={ringOuterRef} geometry={RING_GEOMETRY} material={RING_MATERIAL} rotation={[Math.PI / 2, 0, 0]} />
       <mesh
