@@ -5,6 +5,14 @@ import type { Group } from "three";
 import { useSceneStore } from "../store/useSceneStore";
 import { computeTruckPose } from "../world/worldPath";
 import { DeliveryVehicle } from "./kit/DeliveryVehicle";
+import { GLBModel } from "../components/3d/GLBModel";
+
+// Measured directly off the exported asset (blender/exports/the-basketry-delivery-truck.glb):
+// bbox X 5.59 (length) x Y 2.95 (height) x Z 2.64 (width, mirror-to-mirror), root origin at
+// the wheel-contact ground plane. 0.3 matches the old procedural DeliveryVehicle's effective
+// on-road length (1.315 local units x 1.3 scale = 1.7095) against the GLB's 5.59 length.
+const TRUCK_GLB_SRC = "/models/environment/the-basketry-delivery-truck.glb";
+const TRUCK_GLB_SCALE = 0.3;
 
 const UP = new THREE.Vector3(0, 1, 0);
 const position = new THREE.Vector3();
@@ -33,11 +41,11 @@ export function Truck() {
 
   return (
     <group ref={groupRef}>
-      {/* DeliveryVehicle's cab faces local +X; lookAt orients -Z forward,
-          so correct for that mismatch here rather than in the shared kit
-          component. */}
+      {/* Both the GLB and DeliveryVehicle's cab face local +X; lookAt orients
+          -Z forward, so correct for that mismatch here rather than in the
+          shared kit component. */}
       <group rotation={[0, -Math.PI / 2, 0]}>
-        <DeliveryVehicle scale={1.3} />
+        <GLBModel src={TRUCK_GLB_SRC} scale={TRUCK_GLB_SCALE} fallback={<DeliveryVehicle scale={1.3} />} />
       </group>
     </group>
   );
