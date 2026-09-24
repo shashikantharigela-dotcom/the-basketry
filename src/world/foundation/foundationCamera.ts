@@ -31,11 +31,14 @@ interface CameraKeyframe {
 const KEYFRAMES: CameraKeyframe[] = [
   // Establishing: high and wide, the whole first S in view.
   { at: 0.0, back: 13, up: 10, side: 4.5, lookAhead: 0.06, lookUp: 0, fov: 40 },
-  // Settle down behind the truck.
-  { at: 0.12, back: 7.5, up: 4.2, side: 2.2, lookAhead: 0.03, lookUp: 0.4, fov: 42 },
+  // Settle in close on a rear three-quarter view — box body, side and wheels read as a real truck.
+  { at: 0.12, back: 5.0, up: 2.6, side: 3.4, lookAhead: 0.01, lookUp: 0.35, fov: 40 },
   // Low cinematic chase through the bends.
   { at: 0.35, back: 6.2, up: 3.2, side: 1.6, lookAhead: 0.028, lookUp: 0.5, fov: 44 },
-  { at: 0.6, back: 7.0, up: 3.8, side: -1.8, lookAhead: 0.03, lookUp: 0.45, fov: 43 },
+  // Pass alongside in a side profile, keeping distance so the truck stays framed during the swing.
+  { at: 0.48, back: 0.5, up: 3.0, side: 4.6, lookAhead: 0.004, lookUp: 0.35, fov: 42 },
+  // Swing around the side to a front three-quarter view of the cab (negative back = ahead of the truck).
+  { at: 0.6, back: -4.8, up: 2.3, side: 3.2, lookAhead: 0, lookUp: 0.4, fov: 40 },
   { at: 0.82, back: 8.5, up: 5.0, side: 2.0, lookAhead: 0.035, lookUp: 0.3, fov: 42 },
   // Lift into a wide overview of the miniature world.
   { at: 1.0, back: 16, up: 14, side: 5.0, lookAhead: 0.02, lookUp: 0, fov: 38 },

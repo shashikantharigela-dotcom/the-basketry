@@ -6,10 +6,49 @@ import { ROAD_CURVE, ROAD_HALF_WIDTH, ROAD_LENGTH, ROAD_SURFACE_OFFSET, groundHe
 const lod = isNarrowViewport();
 const ROAD_SEGMENTS = lod ? 500 : 1000;
 
-const ROAD_MATERIAL = new THREE.MeshStandardMaterial({ color: "#fff8ed", roughness: 0.78, metalness: 0.04 });
-const CURB_MATERIAL = new THREE.MeshStandardMaterial({ color: "#e9dccb", roughness: 0.85, metalness: 0.02 });
-const CENTER_LINE_MATERIAL = new THREE.MeshStandardMaterial({ color: "#f20d16", roughness: 0.4, metalness: 0.1 });
-const EDGE_LINE_MATERIAL = new THREE.MeshStandardMaterial({ color: "#ffffff", roughness: 0.35, metalness: 0.05 });
+/** Dark asphalt with a fine aggregate grain. The road strips carry no UVs,
+ * so the grain is a small world-space hash noise added in the shader —
+ * it only varies color and roughness, never the geometry. */
+function createAsphaltMaterial(color: string, roughness: number): THREE.MeshStandardMaterial {
+  const material = new THREE.MeshStandardMaterial({ color, roughness, metalness: 0 });
+  material.onBeforeCompile = (shader) => {
+    shader.vertexShader = shader.vertexShader
+      .replace("#include <common>", "#include <common>\nvarying vec3 vAsphaltPos;")
+      .replace(
+        "#include <worldpos_vertex>",
+        "#include <worldpos_vertex>\nvAsphaltPos = (modelMatrix * vec4(transformed, 1.0)).xyz;"
+      );
+    shader.fragmentShader = shader.fragmentShader
+      .replace(
+        "#include <common>",
+        `#include <common>
+varying vec3 vAsphaltPos;
+float asphaltHash(vec3 p) {
+  p = fract(p * 0.3183099 + 0.1);
+  p *= 17.0;
+  return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
+}`
+      )
+      .replace(
+        "#include <color_fragment>",
+        `#include <color_fragment>
+float asphaltGrain = asphaltHash(floor(vAsphaltPos * 60.0));
+float asphaltPatch = asphaltHash(floor(vAsphaltPos * 4.0));
+diffuseColor.rgb *= 0.82 + 0.3 * asphaltGrain + 0.1 * asphaltPatch;`
+      )
+      .replace(
+        "#include <roughnessmap_fragment>",
+        `#include <roughnessmap_fragment>
+roughnessFactor = clamp(roughnessFactor - 0.12 * asphaltGrain, 0.0, 1.0);`
+      );
+  };
+  return material;
+}
+
+const ROAD_MATERIAL = createAsphaltMaterial("#1e1e21", 0.9);
+const CURB_MATERIAL = createAsphaltMaterial("#2c2c30", 0.95);
+const CENTER_LINE_MATERIAL = new THREE.MeshStandardMaterial({ color: "#f5f5f2", roughness: 0.55, metalness: 0 });
+const EDGE_LINE_MATERIAL = new THREE.MeshStandardMaterial({ color: "#f5f5f2", roughness: 0.55, metalness: 0 });
 
 const CURB_DEPTH = 0.12;
 const DASH_LENGTH = 0.55;
@@ -103,8 +142,8 @@ function buildCurbs(frames: RoadFrame[]): THREE.BufferGeometry {
 }
 
 /** The single continuous S-shaped road, draped over the terrain dome:
- * cream pavement, curbed edges, white edge lines and a dashed red
- * center line — the same materials language as the legacy road. */
+ * dark asphalt, curbed edges, white edge lines and a dashed white
+ * center dividing line. */
 export function SRoad() {
   const geometries = useMemo(() => {
     const frames = sampleFrames();
