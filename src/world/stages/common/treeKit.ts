@@ -4,8 +4,8 @@ import type { TreeSpec } from "./types";
 
 /**
  * The world's shared stylized tree kit — round canopy trees, poplar
- * columns and small fruit trees — built into three instanced batches
- * (trunks, crowns, fruit). Stage 1 and the world-wide vegetation both use
+ * columns, tall dark cypresses and small fruit trees (red or orange fruit)
+ * — built into a few instanced batches (trunks, crowns, fruit). Stage 1 and the world-wide vegetation both use
  * it, so every tree in the world shares one look.
  */
 
@@ -17,6 +17,7 @@ export const FRUIT_GEOMETRY = new THREE.SphereGeometry(1, 8, 6);
 export const TRUNK_MATERIAL = new THREE.MeshStandardMaterial({ color: "#7a5539", roughness: 0.9, metalness: 0 });
 export const CROWN_MATERIAL = new THREE.MeshStandardMaterial({ color: "#ffffff", roughness: 0.8, metalness: 0 });
 export const FRUIT_MATERIAL = new THREE.MeshStandardMaterial({ color: "#d42a1f", roughness: 0.35, metalness: 0 });
+export const ORANGE_FRUIT_MATERIAL = new THREE.MeshStandardMaterial({ color: "#e8862a", roughness: 0.35, metalness: 0 });
 
 const CROWN_COLORS = [
   new THREE.Color("#6f8e48"),
@@ -25,16 +26,18 @@ const CROWN_COLORS = [
   new THREE.Color("#9aae62"),
 ];
 const POPLAR_COLORS = [new THREE.Color("#5b7a3c"), new THREE.Color("#6a8a45")];
+const CYPRESS_COLORS = [new THREE.Color("#3e5a2c"), new THREE.Color("#4a6634"), new THREE.Color("#44602f")];
 
 export interface TreeBatches {
   trunks: THREE.Matrix4[];
   crowns: THREE.Matrix4[];
   crownColors: THREE.Color[];
   fruit: THREE.Matrix4[];
+  orangeFruit: THREE.Matrix4[];
 }
 
 export function addTree(tree: TreeSpec, random: () => number, out: TreeBatches): void {
-  const y = groundY(tree.x, tree.z) - 0.02;
+  const y = (tree.y ?? groundY(tree.x, tree.z)) - 0.02;
   const s = tree.scale;
   const yaw = random() * Math.PI * 2;
 
@@ -46,7 +49,18 @@ export function addTree(tree: TreeSpec, random: () => number, out: TreeBatches):
     return;
   }
 
-  const fruitTree = tree.kind === "fruit";
+  if (tree.kind === "cypress") {
+    // Italian cypress: a slender dark flame — a tall column tapering to a point.
+    out.trunks.push(instanceMatrix(tree.x, y, tree.z, yaw, 0.03 * s, 0.2 * s, 0.03 * s));
+    const color = CYPRESS_COLORS[Math.floor(random() * CYPRESS_COLORS.length)];
+    out.crowns.push(instanceMatrix(tree.x, y + 0.72 * s, tree.z, yaw, 0.15 * s, 0.62 * s, 0.15 * s));
+    out.crownColors.push(color);
+    out.crowns.push(instanceMatrix(tree.x, y + 1.22 * s, tree.z, yaw, 0.085 * s, 0.32 * s, 0.085 * s));
+    out.crownColors.push(color);
+    return;
+  }
+
+  const fruitTree = tree.kind === "fruit" || tree.kind === "orange";
   const trunkHeight = (fruitTree ? 0.24 : 0.42) * s;
   const crown = (fruitTree ? 0.24 : 0.36) * s;
   out.trunks.push(instanceMatrix(tree.x, y, tree.z, yaw, 0.04 * s, trunkHeight, 0.04 * s));
@@ -73,11 +87,12 @@ export function addTree(tree: TreeSpec, random: () => number, out: TreeBatches):
       const a = random() * Math.PI * 2;
       const h = trunkHeight + crown * (0.35 + random() * 0.8);
       const reach = crown * (0.85 + random() * 0.15);
-      out.fruit.push(instanceMatrix(tree.x + Math.cos(a) * reach, y + h, tree.z + Math.sin(a) * reach, 0, 0.024 * s));
+      const fruit = tree.kind === "orange" ? out.orangeFruit : out.fruit;
+      fruit.push(instanceMatrix(tree.x + Math.cos(a) * reach, y + h, tree.z + Math.sin(a) * reach, 0, 0.024 * s));
     }
   }
 }
 
 export function createTreeBatches(): TreeBatches {
-  return { trunks: [], crowns: [], crownColors: [], fruit: [] };
+  return { trunks: [], crowns: [], crownColors: [], fruit: [], orangeFruit: [] };
 }

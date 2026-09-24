@@ -1,5 +1,6 @@
 import type { Rect } from "./common/types";
 import { SCATTER_BOUNDS, SCATTER_KEEP_OUT, STAGE1_PADS } from "./stage1/stage1Layout";
+import { STAGE2_BOUNDS, STAGE2_KEEP_OUT, STAGE2_PADS } from "./stage2/stage2Layout";
 
 /**
  * Registry of how each story stage shapes the shared terrain. The
@@ -40,7 +41,7 @@ export interface TerrainZone {
  * land as everything else. */
 export const TERRAIN_ZONES: TerrainZone[] = [];
 
-export const TERRAIN_PADS: TerrainPad[] = [...STAGE1_PADS];
+export const TERRAIN_PADS: TerrainPad[] = [...STAGE1_PADS, ...STAGE2_PADS];
 
 /** Areas the world-wide vegetation never grows into (a stage's fields,
  * yards, lanes and buildings). */
@@ -50,4 +51,17 @@ export const VEGETATION_KEEP_OUT: Rect[] = [...SCATTER_KEEP_OUT];
  * vegetation thins out there (factor = fraction of normal density). */
 export const VEGETATION_SPARSE: Array<{ minX: number; maxX: number; minZ: number; maxZ: number; factor: number }> = [
   { ...SCATTER_BOUNDS, factor: 0.35 },
+];
+
+/**
+ * Later stages clear and thin the world vegetation AFTER placement instead
+ * (see WorldVegetation): the vegetation is scattered by one seeded random
+ * stream, so a keep-out added above would reshuffle every plant placed
+ * after it — including around earlier, approved stages. Clearings remove
+ * plants inside them; thinning keeps a deterministic fraction per plant.
+ */
+export const VEGETATION_CLEARINGS: Rect[] = [...STAGE2_KEEP_OUT];
+
+export const VEGETATION_THINNING: Array<{ minX: number; maxX: number; minZ: number; maxZ: number; factor: number }> = [
+  { ...STAGE2_BOUNDS, factor: 0.4 },
 ];

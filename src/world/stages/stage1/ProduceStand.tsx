@@ -3,8 +3,8 @@ import * as THREE from "three";
 import { InstancedBatch } from "../common/InstancedBatch";
 import { createRandom, groundY, instanceMatrix } from "../common/placement";
 import { HAY_BALES, PRODUCE_STAND } from "./stage1Layout";
-import { CRATE, PRODUCE, PRODUCE_COLORS, PRODUCE_GEOMETRY, WOOD, WOOD_DARK, type Placed } from "./harvest";
-import { Basket, Crate } from "./HarvestKit";
+import { CRATE, PRODUCE, PRODUCE_COLORS, PRODUCE_GEOMETRY, WOOD, WOOD_DARK, type Placed } from "../common/harvest";
+import { Basket, Crate } from "../common/HarvestKit";
 
 const CANVAS_RED = new THREE.MeshStandardMaterial({ color: "#cf1f24", roughness: 0.7, metalness: 0 });
 const CANVAS_CREAM = new THREE.MeshStandardMaterial({ color: "#f5ecdc", roughness: 0.75, metalness: 0 });

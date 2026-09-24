@@ -8,7 +8,7 @@ import { createRandom, groundY, insideRect, instanceMatrix } from "../stages/com
 import { addTree, createTreeBatches } from "../stages/common/treeKit";
 import { TreeBatchMeshes } from "../stages/common/TreeBatchMeshes";
 import type { TreeKind } from "../stages/common/types";
-import { VEGETATION_KEEP_OUT, VEGETATION_SPARSE } from "../stages/worldZones";
+import { VEGETATION_CLEARINGS, VEGETATION_KEEP_OUT, VEGETATION_SPARSE, VEGETATION_THINNING } from "../stages/worldZones";
 
 const lod = isNarrowViewport();
 /** Mobile spreads everything thinner. */
@@ -55,6 +55,25 @@ function isFree(x: number, z: number, roadDistance: number, roadClearance: numbe
   return !VEGETATION_KEEP_OUT.some((rect) => insideRect(rect, x, z));
 }
 
+/** Deterministic 0–1 value per position (independent of the random stream). */
+function positionHash(x: number, z: number): number {
+  const h = Math.sin(x * 12.9898 + z * 78.233) * 43758.5453;
+  return h - Math.floor(h);
+}
+
+/** Post-placement filter for later stages (see VEGETATION_CLEARINGS): true
+ * when a plant at (x, z) should be dropped. Evaluated only AFTER a plant's
+ * random draws, so it never shifts the seeded layout anywhere else. */
+function isCleared(x: number, z: number): boolean {
+  if (VEGETATION_CLEARINGS.some((rect) => insideRect(rect, x, z))) return true;
+  for (const region of VEGETATION_THINNING) {
+    if (x >= region.minX && x <= region.maxX && z >= region.minZ && z <= region.maxZ) {
+      return positionHash(x, z) > region.factor;
+    }
+  }
+  return false;
+}
+
 /** Visit a jittered grid over the whole plateau. */
 function forEachCandidate(spacing: number, random: () => number, visit: (x: number, z: number) => void): void {
   const minX = TERRAIN_CENTER.x - TERRAIN_HALF_SIZE.x;
@@ -80,6 +99,7 @@ export function WorldVegetation() {
   const batches = useMemo(() => {
     const random = createRandom(31337);
     const trees = createTreeBatches();
+    const discarded = createTreeBatches();
     const tufts: THREE.Matrix4[] = [];
     const tuftColors: THREE.Color[] = [];
     const bushes: THREE.Matrix4[] = [];
@@ -95,7 +115,9 @@ export function WorldVegetation() {
       if (random() > chance || !isFree(x, z, d, 2.0)) return;
       const roll = random();
       const kind: TreeKind = roll < 0.68 ? "round" : roll < 0.95 ? "poplar" : "fruit";
-      addTree({ kind, x, z, scale: 0.8 + random() * 0.55 }, random, trees);
+      // Always build (so the random stream advances identically); keep it
+      // only if no later stage has cleared this spot.
+      addTree({ kind, x, z, scale: 0.8 + random() * 0.55 }, random, isCleared(x, z) ? discarded : trees);
     });
 
     // Shrubs, mostly in the meadows.
@@ -104,8 +126,11 @@ export function WorldVegetation() {
       const chance = (0.08 + 0.35 * meadowAmount(x, z) + 0.15 * groveAmount(x, z)) * densityFactor(x, z);
       if (random() > chance || !isFree(x, z, d, 1.2)) return;
       const r = 0.07 + random() * 0.1;
-      bushes.push(instanceMatrix(x, groundY(x, z) + r * 0.45, z, random() * 6, r * 1.15, r * 0.8, r));
-      bushColors.push(BUSH_COLORS[Math.floor(random() * BUSH_COLORS.length)]);
+      const matrix = instanceMatrix(x, groundY(x, z) + r * 0.45, z, random() * 6, r * 1.15, r * 0.8, r);
+      const color = BUSH_COLORS[Math.floor(random() * BUSH_COLORS.length)];
+      if (isCleared(x, z)) return;
+      bushes.push(matrix);
+      bushColors.push(color);
     });
 
     // Grass: little clumps of tufts, dense in meadows and along the verge,
@@ -123,7 +148,9 @@ export function WorldVegetation() {
         const tz = z + (random() - 0.5) * 0.22;
         if (distanceToRoad(tx, tz) < ROAD_HALF_WIDTH + 0.2) continue;
         const h = 0.05 + random() * 0.06;
-        tufts.push(instanceMatrix(tx, groundY(tx, tz) - 0.005, tz, random() * 6, 0.018, h, 0.018, (random() - 0.5) * 0.45));
+        const matrix = instanceMatrix(tx, groundY(tx, tz) - 0.005, tz, random() * 6, 0.018, h, 0.018, (random() - 0.5) * 0.45);
+        if (isCleared(tx, tz)) continue;
+        tufts.push(matrix);
         tuftColors.push(color);
       }
     });
@@ -134,14 +161,17 @@ export function WorldVegetation() {
       const density = densityFactor(x, z);
       if (random() < 0.1 * density && isFree(x, z, d, 0.5)) {
         const r = 0.03 + random() * 0.08;
-        rocks.push(instanceMatrix(x, groundY(x, z) + r * 0.2, z, random() * 6, r * 1.2, r * 0.7, r, random() * 0.4));
+        const matrix = instanceMatrix(x, groundY(x, z) + r * 0.2, z, random() * 6, r * 1.2, r * 0.7, r, random() * 0.4);
+        if (!isCleared(x, z)) rocks.push(matrix);
       }
       if (random() < (0.04 + 0.2 * meadowAmount(x, z)) * density && isFree(x, z, d, 0.6)) {
         const color = FLOWER_COLORS[Math.floor(random() * FLOWER_COLORS.length)];
         for (let k = 0; k < 6; k++) {
           const fx = x + (random() - 0.5) * 0.3;
           const fz = z + (random() - 0.5) * 0.3;
-          flowers.push(instanceMatrix(fx, groundY(fx, fz) + 0.025, fz, 0, 0.011 + random() * 0.006));
+          const matrix = instanceMatrix(fx, groundY(fx, fz) + 0.025, fz, 0, 0.011 + random() * 0.006);
+          if (isCleared(fx, fz)) continue;
+          flowers.push(matrix);
           flowerColors.push(color);
         }
       }

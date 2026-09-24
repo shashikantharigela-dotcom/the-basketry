@@ -4,6 +4,7 @@ import {
   CROWN_MATERIAL,
   FRUIT_GEOMETRY,
   FRUIT_MATERIAL,
+  ORANGE_FRUIT_MATERIAL,
   TRUNK_GEOMETRY,
   TRUNK_MATERIAL,
   type TreeBatches,
@@ -23,6 +24,14 @@ export function TreeBatchMeshes({ batches, castShadow = true }: { batches: TreeB
       />
       {batches.fruit.length > 0 && (
         <InstancedBatch geometry={FRUIT_GEOMETRY} material={FRUIT_MATERIAL} matrices={batches.fruit} castShadow={castShadow} />
+      )}
+      {batches.orangeFruit.length > 0 && (
+        <InstancedBatch
+          geometry={FRUIT_GEOMETRY}
+          material={ORANGE_FRUIT_MATERIAL}
+          matrices={batches.orangeFruit}
+          castShadow={castShadow}
+        />
       )}
     </group>
   );

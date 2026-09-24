@@ -1,14 +1,14 @@
-import { CropField } from "./CropField";
+import { CropField } from "../common/CropField";
 import { FarmBuildings } from "./FarmBuildings";
 import { FarmPaths } from "./FarmPaths";
-import { FarmPlanting } from "./FarmPlanting";
 import { FarmProps } from "./FarmProps";
-import { Fences } from "./Fences";
-import { Figures } from "./Figures";
 import { ProduceStand } from "./ProduceStand";
 import { Scatter } from "./Scatter";
 import { Trees } from "./Trees";
-import { FIELDS } from "./stage1Layout";
+import { FENCES, FIELDS, FIGURES, HEDGES } from "./stage1Layout";
+import { Figures } from "../common/Figures";
+import { Fences } from "../common/Fences";
+import { Hedgerows } from "../common/Hedgerows";
 
 /**
  * STAGE 1 — PRODUCT ORIGIN. "Good products start somewhere."
@@ -34,10 +34,10 @@ export function Stage1ProductOrigin() {
       <ProduceStand />
       <FarmProps />
       <FarmPaths />
-      <Fences />
-      <FarmPlanting />
+      <Fences lines={FENCES} />
+      <Hedgerows lines={HEDGES} seed={6262} />
       <Trees />
-      <Figures />
+      <Figures figures={FIGURES} />
       <Scatter />
     </group>
   );

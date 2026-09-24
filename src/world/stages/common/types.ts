@@ -9,11 +9,20 @@ export interface Rect {
   rotationY: number;
 }
 
-export type TreeKind = "round" | "poplar" | "fruit";
+export type TreeKind = "round" | "poplar" | "fruit" | "orange" | "cypress";
 
 export interface TreeSpec {
   kind: TreeKind;
   x: number;
   z: number;
   scale: number;
+  /** Ground height to stand on (e.g. a terrace top); defaults to the terrain. */
+  y?: number;
+}
+
+export type CropKind = "greens" | "wheat" | "sprouts" | "tomatoes" | "squash";
+
+/** A cultivated field: a rotated rect of crop rows. */
+export interface FieldSpec extends Rect {
+  kind: CropKind;
 }

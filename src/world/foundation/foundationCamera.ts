@@ -1,12 +1,15 @@
 import * as THREE from "three";
 import { getRoadPoint, getRoadRight, getRoadTangent, getRoadTurn, smoothstep, terrainHeight, truckRoadU } from "./sRoad";
 import { STAGE1_FOCUS } from "../stages/stage1/stage1Layout";
+import { STAGE2_FOCUS } from "../stages/stage2/stage2Layout";
+import { TERRACE_TOP } from "../stages/stage2/stage2Geometry";
 
 /**
  * Cinematic camera path for the 3D foundation: a pure function of scroll
- * progress that rides along the S-road with the truck. It opens on a
- * high establishing shot, settles into a low chase, and lifts back into
- * a wide overview at the end. FoundationCameraRig damps toward this every
+ * progress that rides along the S-road with the truck. Each story stage
+ * gets its own short sequence of shots (Stage 1 ≈ 0–20%, Stage 2 ≈ 25–45%)
+ * leaning toward that stage's focus point, then the journey continues and
+ * lifts into a wide overview at the end. FoundationCameraRig damps toward this every
  * frame — nothing here is smoothed or stateful.
  *
  * Framing is keyed by scroll progress, not by story stage, so future
@@ -27,35 +30,53 @@ interface CameraKeyframe {
   /** Height of the look-at point above the road. */
   lookUp: number;
   fov: number;
-  /** 0–1: how far the aim leans from the road ahead toward the stage's
-   * focus point (e.g. the heart of the farm), so a shot can frame a place
-   * beside the road with the truck still in view. 0 = pure road chase. */
-  focus?: number;
+  /** 0–1 per stage: how far the aim leans from the road ahead toward that
+   * stage's focus point (e.g. the heart of the farm), so a shot can frame
+   * a place beside the road with the truck still in view. Omitted = pure
+   * road chase. */
+  focus?: Partial<Record<FocusId, number>>;
 }
 
-/** The world point stage-focused shots lean toward. */
-const FOCUS_POINT = new THREE.Vector3(
-  STAGE1_FOCUS.x,
-  terrainHeight(STAGE1_FOCUS.x, STAGE1_FOCUS.z) + STAGE1_FOCUS.height,
-  STAGE1_FOCUS.z
-);
+/** The world points stage-focused shots lean toward. */
+const FOCUS_POINTS = {
+  productOrigin: new THREE.Vector3(
+    STAGE1_FOCUS.x,
+    terrainHeight(STAGE1_FOCUS.x, STAGE1_FOCUS.z) + STAGE1_FOCUS.height,
+    STAGE1_FOCUS.z
+  ),
+  productApproaches: new THREE.Vector3(STAGE2_FOCUS.x, TERRACE_TOP + STAGE2_FOCUS.height, STAGE2_FOCUS.z),
+};
+type FocusId = keyof typeof FOCUS_POINTS;
+const FOCUS_IDS = Object.keys(FOCUS_POINTS) as FocusId[];
 
 const KEYFRAMES: CameraKeyframe[] = [
   // STAGE 1 — PRODUCT ORIGIN (≈ first 20% of the journey), a closer
   // three-beat sequence: farm → crops/producers/harvest → truck.
   // Establishing: from the outside of the bend, the farm fills the frame
   // with the truck in the foreground about to pass it.
-  { at: 0.0, back: 4.0, up: 5.6, side: 5.2, lookAhead: 0.02, lookUp: 0.2, fov: 44, focus: 0.6 },
+  { at: 0.0, back: 4.0, up: 5.6, side: 5.2, lookAhead: 0.02, lookUp: 0.2, fov: 44, focus: { productOrigin: 0.6 } },
   // The truck passes the lane mouth: look across it into the yard —
   // producers at work, the produce stand, the harvest pallet by the road.
-  { at: 0.06, back: 3.2, up: 3.9, side: 4.4, lookAhead: 0.01, lookUp: 0.25, fov: 42, focus: 0.5 },
+  { at: 0.06, back: 3.2, up: 3.9, side: 4.4, lookAhead: 0.01, lookUp: 0.25, fov: 42, focus: { productOrigin: 0.5 } },
   // Close rear three-quarter on the truck, drawn toward the market garden
   // and orchard right beside it.
-  { at: 0.12, back: 5.0, up: 2.6, side: 3.4, lookAhead: 0.01, lookUp: 0.35, fov: 40, focus: 0.22 },
+  { at: 0.12, back: 5.0, up: 2.6, side: 3.4, lookAhead: 0.01, lookUp: 0.35, fov: 40, focus: { productOrigin: 0.22 } },
   // Releasing the farm: the aim swings back onto the road ahead.
-  { at: 0.2, back: 5.6, up: 2.9, side: 2.4, lookAhead: 0.02, lookUp: 0.45, fov: 42, focus: 0.04 },
-  // Low cinematic chase through the bends.
-  { at: 0.35, back: 6.2, up: 3.2, side: 1.6, lookAhead: 0.028, lookUp: 0.5, fov: 44 },
+  { at: 0.2, back: 5.6, up: 2.9, side: 2.4, lookAhead: 0.02, lookUp: 0.45, fov: 42, focus: { productOrigin: 0.04 } },
+  // STAGE 2 — THE BASKETRY APPROACHES PRODUCTS (≈ 25–45%), after the
+  // approved reference: the camera moves to the OUTSIDE of the bend (left
+  // of travel) so the road and truck lie in the foreground and the
+  // facility rises behind them, then closes in on the product evaluation.
+  // Approach: lifting and drifting left as the facility comes into view.
+  { at: 0.25, back: 6.5, up: 4.4, side: -1.6, lookAhead: 0.045, lookUp: 0.3, fov: 42, focus: { productApproaches: 0.2 } },
+  // The reference view: high three-quarter from outside the bend — truck
+  // on the road below, the terrace, hall, canopy and silos behind.
+  { at: 0.31, back: 0.8, up: 5.0, side: -5.4, lookAhead: 0.015, lookUp: 0.2, fov: 38, focus: { productApproaches: 0.72 } },
+  // Product evaluation: closer on the tables and the people around them,
+  // the truck passing right below the wall.
+  { at: 0.38, back: -0.4, up: 4.0, side: -5.0, lookAhead: 0, lookUp: 0.3, fov: 34, focus: { productApproaches: 0.85 } },
+  // Moving on: back behind the truck, rejoining the journey.
+  { at: 0.44, back: 5.2, up: 4.0, side: 0.6, lookAhead: 0.02, lookUp: 0.35, fov: 42, focus: { productApproaches: 0.12 } },
   // Pass alongside in a side profile, keeping distance so the truck stays framed during the swing.
   { at: 0.48, back: 0.5, up: 3.0, side: 4.6, lookAhead: 0.004, lookUp: 0.35, fov: 42 },
   // Swing around the side to a front three-quarter view of the cab (negative back = ahead of the truck).
@@ -89,7 +110,12 @@ function interpolate(progress: number): CameraKeyframe {
       f.lookAhead = THREE.MathUtils.lerp(a.lookAhead, b.lookAhead, t);
       f.lookUp = THREE.MathUtils.lerp(a.lookUp, b.lookUp, t);
       f.fov = THREE.MathUtils.lerp(a.fov, b.fov, t);
-      f.focus = THREE.MathUtils.lerp(a.focus ?? 0, b.focus ?? 0, t);
+      const focus: Partial<Record<FocusId, number>> = {};
+      for (const id of FOCUS_IDS) {
+        const weight = THREE.MathUtils.lerp(a.focus?.[id] ?? 0, b.focus?.[id] ?? 0, t);
+        if (weight > 0) focus[id] = weight;
+      }
+      f.focus = focus;
       return f;
     }
   }
@@ -139,7 +165,10 @@ export function computeFoundationCameraPose(
 
   getRoadPoint(Math.min(1, u + frame.lookAhead), out.target);
   out.target.y += frame.lookUp;
-  if (frame.focus) out.target.lerp(FOCUS_POINT, frame.focus);
+  for (const id of FOCUS_IDS) {
+    const weight = frame.focus?.[id];
+    if (weight) out.target.lerp(FOCUS_POINTS[id], weight);
+  }
 
   // Subtle handheld "breathing" — scaled away for reduced motion.
   out.position.x += Math.sin(elapsedTime * 0.35) * 0.08 * motionScale;

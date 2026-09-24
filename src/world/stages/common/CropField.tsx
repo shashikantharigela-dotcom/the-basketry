@@ -1,9 +1,9 @@
 import { useMemo } from "react";
 import * as THREE from "three";
 import { isNarrowViewport } from "../../../hooks/useIsMobile";
-import { InstancedBatch } from "../common/InstancedBatch";
-import { createRandom, groundY, instanceMatrix, rectToWorld } from "../common/placement";
-import type { CropKind, FieldSpec } from "./stage1Layout";
+import { InstancedBatch } from "./InstancedBatch";
+import { createRandom, groundY, instanceMatrix, rectToWorld } from "./placement";
+import type { CropKind, FieldSpec } from "./types";
 
 const lod = isNarrowViewport();
 

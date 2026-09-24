@@ -1,8 +1,7 @@
 import { useMemo } from "react";
 import * as THREE from "three";
-import { InstancedBatch } from "../common/InstancedBatch";
-import { groundY } from "../common/placement";
-import { FENCES } from "./stage1Layout";
+import { InstancedBatch } from "./InstancedBatch";
+import { groundY } from "./placement";
 
 const POST_SPACING = 0.42;
 // ≈1.1 m timber post-and-rail fence.
@@ -16,16 +15,16 @@ const FENCE_MATERIAL = new THREE.MeshStandardMaterial({ color: "#9b7755", roughn
 
 const FORWARD = new THREE.Vector3(0, 0, 1);
 
-/** Post-and-rail fences along the given polylines, following the terrain:
- * posts stand vertical, rails tilt with the slope between them. */
-export function Fences() {
+/** Post-and-rail fences along the given polylines (world x/z), following
+ * the terrain: posts stand vertical, rails tilt with the slope between them. */
+export function Fences({ lines }: { lines: Array<Array<[number, number]>> }) {
   const { posts, rails } = useMemo(() => {
     const postMatrices: THREE.Matrix4[] = [];
     const railMatrices: THREE.Matrix4[] = [];
     const quaternion = new THREE.Quaternion();
     const direction = new THREE.Vector3();
 
-    for (const line of FENCES) {
+    for (const line of lines) {
       const points: THREE.Vector3[] = [];
       for (let i = 0; i < line.length - 1; i++) {
         const [ax, az] = line[i];
@@ -60,7 +59,7 @@ export function Fences() {
       }
     }
     return { posts: postMatrices, rails: railMatrices };
-  }, []);
+  }, [lines]);
 
   return (
     <group>

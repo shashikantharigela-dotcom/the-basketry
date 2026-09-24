@@ -2,8 +2,8 @@ import { useMemo } from "react";
 import * as THREE from "three";
 import { InstancedBatch } from "../common/InstancedBatch";
 import { createRandom, groundY } from "../common/placement";
-import { Basket, Crate } from "./HarvestKit";
-import { CRATE, PRODUCE, PRODUCE_GEOMETRY, WOOD, WOOD_DARK, fillProduce, type Placed } from "./harvest";
+import { Basket, Crate } from "../common/HarvestKit";
+import { CRATE, PRODUCE, PRODUCE_GEOMETRY, WOOD, WOOD_DARK, fillProduce, type Placed } from "../common/harvest";
 import { HARVEST, YARD_GATE } from "./stage1Layout";
 
 const BARROW_RED = new THREE.MeshStandardMaterial({ color: "#c9282b", roughness: 0.45, metalness: 0.2 });

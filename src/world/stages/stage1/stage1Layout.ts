@@ -15,17 +15,13 @@
  * everything here uses the same 0.22 units / meter.
  */
 
-import type { Rect, TreeSpec } from "../common/types";
+import type { FieldSpec, Rect, TreeSpec } from "../common/types";
+import type { FigureSpec } from "../common/Figures";
 
-export type { TreeKind, TreeSpec } from "../common/types";
+export type { CropKind, FieldSpec, TreeKind, TreeSpec } from "../common/types";
 
 export const METER = 0.22;
 
-export type CropKind = "greens" | "wheat" | "sprouts" | "tomatoes" | "squash";
-
-export interface FieldSpec extends Rect {
-  kind: CropKind;
-}
 
 
 /** The heart of the farm (yard, produce stand, lane mouth, market garden) —
@@ -199,7 +195,7 @@ export const HAY_BALES: Array<[number, number, number]> = [
 ];
 
 /** Stylized producer figures (x, z, facing yaw, pose). */
-export const FIGURES: Array<{ x: number; z: number; yaw: number; pose: "carry" | "basket" | "stand"; shirt: string }> = [
+export const FIGURES: FigureSpec[] = [
   { x: 1.75, z: 11.85, yaw: -Math.PI / 2 + 0.4, pose: "basket", shirt: "#8fa36b" },
   { x: 0.55, z: 12.75, yaw: Math.PI / 2 - 0.2, pose: "carry", shirt: "#c8663f" },
   { x: -3.2, z: 19.6, yaw: 0.6, pose: "stand", shirt: "#efe4cf" },
