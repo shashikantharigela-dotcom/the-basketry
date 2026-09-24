@@ -2,7 +2,7 @@ import { Truck } from "../../scenes/Truck";
 import { FoundationCameraRig } from "./FoundationCameraRig";
 import { FoundationLighting } from "./FoundationLighting";
 import { MiniatureTerrain } from "./MiniatureTerrain";
-import { SRoad } from "./SRoad";
+import { SRoad } from "./SRoadMesh";
 import { computeRoadTruckPose } from "./sRoad";
 
 /**
