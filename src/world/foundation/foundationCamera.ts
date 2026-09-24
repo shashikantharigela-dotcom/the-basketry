@@ -1,5 +1,6 @@
 import * as THREE from "three";
-import { getRoadPoint, getRoadRight, getRoadTangent, getRoadTurn, smoothstep, truckRoadU } from "./sRoad";
+import { getRoadPoint, getRoadRight, getRoadTangent, getRoadTurn, smoothstep, terrainHeight, truckRoadU } from "./sRoad";
+import { STAGE1_FOCUS } from "../stages/stage1/stage1Layout";
 
 /**
  * Cinematic camera path for the 3D foundation: a pure function of scroll
@@ -26,13 +27,33 @@ interface CameraKeyframe {
   /** Height of the look-at point above the road. */
   lookUp: number;
   fov: number;
+  /** 0–1: how far the aim leans from the road ahead toward the stage's
+   * focus point (e.g. the heart of the farm), so a shot can frame a place
+   * beside the road with the truck still in view. 0 = pure road chase. */
+  focus?: number;
 }
 
+/** The world point stage-focused shots lean toward. */
+const FOCUS_POINT = new THREE.Vector3(
+  STAGE1_FOCUS.x,
+  terrainHeight(STAGE1_FOCUS.x, STAGE1_FOCUS.z) + STAGE1_FOCUS.height,
+  STAGE1_FOCUS.z
+);
+
 const KEYFRAMES: CameraKeyframe[] = [
-  // Establishing: high and wide, the whole first S in view.
-  { at: 0.0, back: 13, up: 10, side: 4.5, lookAhead: 0.06, lookUp: 0, fov: 40 },
-  // Settle in close on a rear three-quarter view — box body, side and wheels read as a real truck.
-  { at: 0.12, back: 5.0, up: 2.6, side: 3.4, lookAhead: 0.01, lookUp: 0.35, fov: 40 },
+  // STAGE 1 — PRODUCT ORIGIN (≈ first 20% of the journey), a closer
+  // three-beat sequence: farm → crops/producers/harvest → truck.
+  // Establishing: from the outside of the bend, the farm fills the frame
+  // with the truck in the foreground about to pass it.
+  { at: 0.0, back: 4.0, up: 5.6, side: 5.2, lookAhead: 0.02, lookUp: 0.2, fov: 44, focus: 0.6 },
+  // The truck passes the lane mouth: look across it into the yard —
+  // producers at work, the produce stand, the harvest pallet by the road.
+  { at: 0.06, back: 3.2, up: 3.9, side: 4.4, lookAhead: 0.01, lookUp: 0.25, fov: 42, focus: 0.5 },
+  // Close rear three-quarter on the truck, drawn toward the market garden
+  // and orchard right beside it.
+  { at: 0.12, back: 5.0, up: 2.6, side: 3.4, lookAhead: 0.01, lookUp: 0.35, fov: 40, focus: 0.22 },
+  // Releasing the farm: the aim swings back onto the road ahead.
+  { at: 0.2, back: 5.6, up: 2.9, side: 2.4, lookAhead: 0.02, lookUp: 0.45, fov: 42, focus: 0.04 },
   // Low cinematic chase through the bends.
   { at: 0.35, back: 6.2, up: 3.2, side: 1.6, lookAhead: 0.028, lookUp: 0.5, fov: 44 },
   // Pass alongside in a side profile, keeping distance so the truck stays framed during the swing.
@@ -68,6 +89,7 @@ function interpolate(progress: number): CameraKeyframe {
       f.lookAhead = THREE.MathUtils.lerp(a.lookAhead, b.lookAhead, t);
       f.lookUp = THREE.MathUtils.lerp(a.lookUp, b.lookUp, t);
       f.fov = THREE.MathUtils.lerp(a.fov, b.fov, t);
+      f.focus = THREE.MathUtils.lerp(a.focus ?? 0, b.focus ?? 0, t);
       return f;
     }
   }
@@ -117,6 +139,7 @@ export function computeFoundationCameraPose(
 
   getRoadPoint(Math.min(1, u + frame.lookAhead), out.target);
   out.target.y += frame.lookUp;
+  if (frame.focus) out.target.lerp(FOCUS_POINT, frame.focus);
 
   // Subtle handheld "breathing" — scaled away for reduced motion.
   out.position.x += Math.sin(elapsedTime * 0.35) * 0.08 * motionScale;

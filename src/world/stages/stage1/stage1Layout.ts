@@ -28,6 +28,10 @@ export interface FieldSpec extends Rect {
 }
 
 
+/** The heart of the farm (yard, produce stand, lane mouth, market garden) —
+ * what the Stage 1 camera shots lean their aim toward. */
+export const STAGE1_FOCUS = { x: 0.4, z: 11.6, height: 0.35 };
+
 /** Where the land is flattened so buildings and the yard sit level. */
 export const STAGE1_PADS = [
   { x: -0.9, z: 13.8, radius: 3.4, falloff: 2.2 },
