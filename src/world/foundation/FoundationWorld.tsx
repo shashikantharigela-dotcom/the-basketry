@@ -6,6 +6,7 @@ import { SRoad } from "./SRoadMesh";
 import { computeRoadTruckPose } from "./sRoad";
 import { Clouds } from "../environment/Clouds";
 import { DistantMountains } from "../environment/DistantMountains";
+import { WorldVegetation } from "../environment/WorldVegetation";
 import { Stage1ProductOrigin } from "../stages/stage1/Stage1ProductOrigin";
 
 /**
@@ -25,6 +26,7 @@ export function FoundationWorld() {
 
       <MiniatureTerrain />
       <SRoad />
+      <WorldVegetation />
 
       <Stage1ProductOrigin />
 

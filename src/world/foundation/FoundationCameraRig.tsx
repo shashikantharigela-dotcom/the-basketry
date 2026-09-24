@@ -2,7 +2,7 @@ import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useSceneStore } from "../../store/useSceneStore";
-import { computeFoundationCameraPose, getOverviewBlend, type FoundationCameraPose } from "./foundationCamera";
+import { computeFoundationCameraPose, type FoundationCameraPose } from "./foundationCamera";
 
 const pose: FoundationCameraPose = {
   position: new THREE.Vector3(),
@@ -49,13 +49,6 @@ export function FoundationCameraRig() {
     camera.up.copy(bankedUp);
     camera.lookAt(lookAt.current);
 
-    // Open the fog up for the closing overview so the wide shot isn't washed out.
-    const fog = state.scene.fog as THREE.Fog | null;
-    if (fog) {
-      const overview = getOverviewBlend(progress);
-      fog.near = THREE.MathUtils.lerp(14, 26, overview);
-      fog.far = THREE.MathUtils.lerp(55, 110, overview);
-    }
   });
 
   return null;

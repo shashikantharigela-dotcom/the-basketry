@@ -9,15 +9,18 @@ import { createRandom } from "../stages/common/placement";
  * the camera's far plane / backdrop sphere wherever the drive goes. */
 const PARALLAX_FOLLOW = 0.9;
 const RING_RADIUS = 128;
-const BASE_Y = -26;
+const BASE_Y = -30;
 const PEAK_COUNT = 14;
 const GRID = 72;
 
-// Red-toned brand accent, kept soft and atmospheric: the base melts into
-// the red sky haze, the upper slopes a slightly deeper red.
-const HAZE = new THREE.Color("#e3121b");
-const BODY = new THREE.Color("#b60c15");
-const PEAK = new THREE.Color("#c9141d");
+// THE BASKETRY red as a distant brand accent: the base dissolves into the
+// warm horizon haze (atmospheric perspective), the slopes rise into red.
+// Matches the sky's horizon band, so the mountain bases dissolve into it.
+const HAZE = new THREE.Color("#f4e2cf");
+/** Direction the (baked) sunlight comes from — matches the scene's key light. */
+const SUN_DIR = new THREE.Vector3(-7, 12, -5).normalize();
+const BODY = new THREE.Color("#d05a52");
+const PEAK = new THREE.Color("#c8383a");
 
 /** A smooth massif: a broad bell-shaped rise with a couple of soft
  * ridges, built on a dense grid so it shades smoothly (no facets). */
@@ -39,15 +42,28 @@ function buildMountain(random: () => number, width: number, height: number): THR
     const ridges = 1 + 0.06 * Math.sin(x * 0.25 + phase) * Math.cos(z * 0.3 - phase);
     const t = Math.max(main, side) * ridges;
     position.setY(i, t * height);
-    color.copy(HAZE).lerp(BODY, THREE.MathUtils.smoothstep(t, 0.05, 0.5)).lerp(PEAK, THREE.MathUtils.smoothstep(t, 0.7, 1));
+  }
+  geometry.computeVertexNormals();
+
+  // Unlit material with soft sun shading baked in: sunlit faces slightly
+  // brighter, shaded faces slightly deeper — while the hazy base keeps the
+  // exact sky colour, so the range never reads as a murky shape.
+  const normal = geometry.attributes.normal;
+  const n = new THREE.Vector3();
+  for (let i = 0; i < position.count; i++) {
+    const t = position.getY(i) / height;
+    n.fromBufferAttribute(normal, i);
+    const light = 0.86 + 0.24 * Math.max(0, n.dot(SUN_DIR));
+    const redness = THREE.MathUtils.smoothstep(t, 0.25, 0.85);
+    color.copy(BODY).lerp(PEAK, THREE.MathUtils.smoothstep(t, 0.7, 1)).multiplyScalar(light);
+    color.lerp(HAZE, 1 - redness);
     colors.push(color.r, color.g, color.b);
   }
   geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
-  geometry.computeVertexNormals();
   return geometry;
 }
 
-const MATERIAL = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1, metalness: 0, fog: false });
+const MATERIAL = new THREE.MeshBasicMaterial({ vertexColors: true, fog: false, toneMapped: false });
 
 /** A ring of soft, distant red mountains around the whole world — the
  * brand's red as a far background accent rather than the ground itself. */
@@ -60,7 +76,7 @@ export function DistantMountains() {
       const angle = (i / PEAK_COUNT) * Math.PI * 2 + (random() - 0.5) * 0.25;
       const radius = RING_RADIUS + (random() - 0.5) * 22;
       const width = 34 + random() * 18;
-      const height = 30 + random() * 12;
+      const height = 26 + random() * 10;
       return {
         geometry: buildMountain(random, width, height),
         position: [Math.sin(angle) * radius, BASE_Y, Math.cos(angle) * radius] as [number, number, number],

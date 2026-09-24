@@ -1,4 +1,5 @@
-import { STAGE1_PADS, STAGE1_ZONE } from "./stage1/stage1Layout";
+import type { Rect } from "./common/types";
+import { SCATTER_BOUNDS, SCATTER_KEEP_OUT, STAGE1_PADS } from "./stage1/stage1Layout";
 
 /**
  * Registry of how each story stage shapes the shared terrain. The
@@ -34,6 +35,19 @@ export interface TerrainZone {
   palette: TerrainPalette;
 }
 
-export const TERRAIN_ZONES: TerrainZone[] = [STAGE1_ZONE];
+/** Optional gentle ground tints a stage can lay over the shared natural
+ * landscape. Stage 1 uses none — the farm sits in the same continuous
+ * land as everything else. */
+export const TERRAIN_ZONES: TerrainZone[] = [];
 
 export const TERRAIN_PADS: TerrainPad[] = [...STAGE1_PADS];
+
+/** Areas the world-wide vegetation never grows into (a stage's fields,
+ * yards, lanes and buildings). */
+export const VEGETATION_KEEP_OUT: Rect[] = [...SCATTER_KEEP_OUT];
+
+/** Regions where a stage already dresses its own land, so the world-wide
+ * vegetation thins out there (factor = fraction of normal density). */
+export const VEGETATION_SPARSE: Array<{ minX: number; maxX: number; minZ: number; maxZ: number; factor: number }> = [
+  { ...SCATTER_BOUNDS, factor: 0.35 },
+];

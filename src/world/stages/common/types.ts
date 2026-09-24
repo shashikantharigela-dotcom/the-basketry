@@ -8,3 +8,12 @@ export interface Rect {
   depth: number;
   rotationY: number;
 }
+
+export type TreeKind = "round" | "poplar" | "fruit";
+
+export interface TreeSpec {
+  kind: TreeKind;
+  x: number;
+  z: number;
+  scale: number;
+}

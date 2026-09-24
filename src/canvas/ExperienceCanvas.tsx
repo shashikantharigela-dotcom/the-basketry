@@ -26,6 +26,7 @@ function LegacyWorld() {
       <pointLight position={[0, 2.5, -78]} intensity={6} color="#ffffff" />
       <pointLight position={[0, 2.5, -103]} intensity={6} color="#ffffff" />
 
+      <Backdrop />
       <CameraRig />
       <EcosystemScene />
     </>
@@ -43,7 +44,6 @@ export function ExperienceCanvas() {
       gl={{ antialias: true }}
       shadows={isFoundation ? "percentage" : false}
     >
-      <Backdrop />
       {isFoundation ? <FoundationWorld /> : <LegacyWorld />}
     </Canvas>
   );

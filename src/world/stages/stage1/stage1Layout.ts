@@ -2,8 +2,8 @@
  * STAGE 1 — PRODUCT ORIGIN: where good products come from.
  *
  * Pure layout data (world coordinates, no imports from the road/terrain
- * modules) so the foundation's terrain can read this stage's ground
- * palette and building pads without an import cycle.
+ * modules) so the foundation's terrain can read this stage's building
+ * pads without an import cycle.
  *
  * Everything sits beside the first S-bend of the road (truck u ≈ 0.10 →
  * 0.25). In that stretch the road swings right to x ≈ 6.5 at z ≈ 15 and
@@ -15,7 +15,9 @@
  * everything here uses the same 0.22 units / meter.
  */
 
-import type { Rect } from "../common/types";
+import type { Rect, TreeSpec } from "../common/types";
+
+export type { TreeKind, TreeSpec } from "../common/types";
 
 export const METER = 0.22;
 
@@ -25,28 +27,6 @@ export interface FieldSpec extends Rect {
   kind: CropKind;
 }
 
-export type TreeKind = "round" | "poplar" | "fruit";
-
-export interface TreeSpec {
-  kind: TreeKind;
-  x: number;
-  z: number;
-  scale: number;
-}
-
-export const STAGE1_ZONE = {
-  id: "productOrigin",
-  /** The terrain is fully in this stage's palette between these z values… */
-  zFrom: 40,
-  zTo: -3,
-  /** …and blends back to the neutral world palette over this distance. */
-  fade: 9,
-  palette: {
-    low: "#c7a97d",
-    high: "#ecdfc3",
-    verge: "#b99a6e",
-  },
-} as const;
 
 /** Where the land is flattened so buildings and the yard sit level. */
 export const STAGE1_PADS = [
@@ -155,6 +135,8 @@ export const SCATTER_KEEP_OUT: Rect[] = [
   ...FIELDS.map((f) => ({ ...f, width: f.width + 0.6, depth: f.depth + 0.6 })),
   { x: -1.0, z: 13.8, width: 7.5, depth: 9.5, rotationY: 0 },
   { x: ORCHARD.x, z: ORCHARD.z, width: 3.8, depth: 3.8, rotationY: ORCHARD.rotationY },
+  // The gravel lane from the road to the yard.
+  { x: 3.9, z: 13.3, width: 3.2, depth: 1.0, rotationY: 0 },
 ];
 
 /** The region the scatter is sprinkled over. */
