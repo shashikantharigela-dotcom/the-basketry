@@ -20,16 +20,22 @@ const tangent = new THREE.Vector3();
 const lookTarget = new THREE.Vector3();
 const orientationHelper = new THREE.Object3D();
 
+export interface TruckProps {
+  /** Where the truck sits for a given scroll progress. Defaults to the legacy world path. */
+  computePose?: (progress: number, outPosition: THREE.Vector3, outTangent: THREE.Vector3) => void;
+  castShadow?: boolean;
+}
+
 /** The delivery truck — present for the entire journey, its position and
  * heading driven continuously by scroll progress along the world path.
  * It never disappears and reappears between sections. */
-export function Truck() {
+export function Truck({ computePose = computeTruckPose, castShadow = false }: TruckProps = {}) {
   const groupRef = useRef<Group>(null);
 
   useFrame(() => {
     if (!groupRef.current) return;
     const progress = useSceneStore.getState().progress;
-    computeTruckPose(progress, position, tangent);
+    computePose(progress, position, tangent);
 
     groupRef.current.position.copy(position);
     lookTarget.copy(position).add(tangent);
@@ -45,7 +51,12 @@ export function Truck() {
           -Z forward, so correct for that mismatch here rather than in the
           shared kit component. */}
       <group rotation={[0, -Math.PI / 2, 0]}>
-        <GLBModel src={TRUCK_GLB_SRC} scale={TRUCK_GLB_SCALE} fallback={<DeliveryVehicle scale={1.3} />} />
+        <GLBModel
+          src={TRUCK_GLB_SRC}
+          scale={TRUCK_GLB_SCALE}
+          castShadow={castShadow}
+          fallback={<DeliveryVehicle scale={1.3} />}
+        />
       </group>
     </group>
   );

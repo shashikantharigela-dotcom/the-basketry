@@ -2,15 +2,13 @@ import { Canvas } from "@react-three/fiber";
 import { CameraRig } from "./CameraRig";
 import { Backdrop } from "./Backdrop";
 import { EcosystemScene } from "../scenes/EcosystemScene";
+import { FoundationWorld } from "../world/foundation/FoundationWorld";
+import { SCENE_MODE } from "../world/foundation/sceneMode";
 
-export function ExperienceCanvas() {
+/** The previous ten-beat scene, unchanged — reachable with `?legacy`. */
+function LegacyWorld() {
   return (
-    <Canvas
-      style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
-      camera={{ fov: 42, near: 0.1, far: 260, position: [-0.8, 1.5, 14.5] }}
-      dpr={[1, 1.75]}
-      gl={{ antialias: true }}
-    >
+    <>
       <color attach="background" args={["#f20d16"]} />
       <fog attach="fog" args={["#b90710", 9, 34]} />
 
@@ -28,9 +26,25 @@ export function ExperienceCanvas() {
       <pointLight position={[0, 2.5, -78]} intensity={6} color="#ffffff" />
       <pointLight position={[0, 2.5, -103]} intensity={6} color="#ffffff" />
 
-      <Backdrop />
       <CameraRig />
       <EcosystemScene />
+    </>
+  );
+}
+
+export function ExperienceCanvas() {
+  const isFoundation = SCENE_MODE === "foundation";
+
+  return (
+    <Canvas
+      style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
+      camera={{ fov: 42, near: 0.1, far: 260, position: [-0.8, 1.5, 14.5] }}
+      dpr={[1, 1.75]}
+      gl={{ antialias: true }}
+      shadows={isFoundation ? "percentage" : false}
+    >
+      <Backdrop />
+      {isFoundation ? <FoundationWorld /> : <LegacyWorld />}
     </Canvas>
   );
 }

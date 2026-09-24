@@ -3,6 +3,7 @@ import { ExperienceCanvas } from "./canvas/ExperienceCanvas";
 import { UIOverlay } from "./ui/UIOverlay";
 import { Logo } from "./components/Logo";
 import { usePrefersReducedMotion } from "./hooks/usePrefersReducedMotion";
+import { SCENE_MODE } from "./world/foundation/sceneMode";
 
 function App() {
   usePrefersReducedMotion();
@@ -36,7 +37,9 @@ function App() {
 
       <NarrativeController scrollLengthVh={1400}>
         <ExperienceCanvas />
-        <UIOverlay />
+        {/* The legacy ten-beat copy belongs to the legacy scene; the
+            foundation world has no story content yet. */}
+        {SCENE_MODE === "legacy" && <UIOverlay />}
       </NarrativeController>
     </div>
   );

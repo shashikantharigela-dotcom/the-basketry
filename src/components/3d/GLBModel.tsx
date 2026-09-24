@@ -9,6 +9,8 @@ export interface GLBModelProps {
   rotation?: [number, number, number];
   scale?: number | [number, number, number];
   visible?: boolean;
+  /** Cast shadows from every mesh in the model. */
+  castShadow?: boolean;
   /** Rendered in place of the model while it's missing or fails to load. */
   fallback?: ReactNode;
 }
@@ -47,9 +49,19 @@ function LoadedModel({
   rotation,
   scale,
   visible,
+  castShadow,
 }: Required<Pick<GLBModelProps, "src">> & Omit<GLBModelProps, "src" | "fallback">) {
   const { scene } = useGLTF(src);
-  return <Clone object={scene} position={position} rotation={rotation} scale={scale} visible={visible} />;
+  return (
+    <Clone
+      object={scene}
+      position={position}
+      rotation={rotation}
+      scale={scale}
+      visible={visible}
+      castShadow={castShadow}
+    />
+  );
 }
 
 /**
@@ -67,6 +79,7 @@ export function GLBModel({
   rotation,
   scale,
   visible = true,
+  castShadow = false,
   fallback = null,
 }: GLBModelProps) {
   if (!src) return fallback;
@@ -74,7 +87,14 @@ export function GLBModel({
   return (
     <ModelErrorBoundary fallback={fallback}>
       <Suspense fallback={fallback}>
-        <LoadedModel src={src} position={position} rotation={rotation} scale={scale} visible={visible} />
+        <LoadedModel
+          src={src}
+          position={position}
+          rotation={rotation}
+          scale={scale}
+          visible={visible}
+          castShadow={castShadow}
+        />
       </Suspense>
     </ModelErrorBoundary>
   );
