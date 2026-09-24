@@ -10,7 +10,7 @@ import { getRoadPoint, truckRoadU } from "./sRoad";
 const lod = isNarrowViewport();
 const SHADOW_MAP_SIZE = lod ? 1024 : 2048;
 /** Half-size of the key light's shadow frustum — kept tight around the truck for crisp miniature shadows. */
-const SHADOW_EXTENT = 14;
+const SHADOW_EXTENT = 18;
 /** Sun direction relative to the truck: high, from front-left, so shadows fall back-right toward camera. */
 const SUN_OFFSET = new THREE.Vector3(-7, 12, -5);
 
@@ -19,8 +19,8 @@ const focus = new THREE.Vector3();
 /**
  * Premium miniature-world lighting: a warm, low-angle sun with soft
  * contact shadows that travels with the truck (so shadow resolution stays
- * high everywhere along the road), a red sky/ground hemisphere matching
- * the Red World, a cool rim light to separate forms from the terrain, and
+ * high everywhere along the road), a warm sky/earth hemisphere bounce, a
+ * soft rim light to separate forms from the terrain, and
  * a drift of fine cream dust in the air for depth.
  */
 export function FoundationLighting() {
@@ -57,13 +57,13 @@ export function FoundationLighting() {
       <color attach="background" args={["#f20d16"]} />
       <fog attach="fog" args={["#b90710", 14, 55]} />
 
-      <hemisphereLight args={["#ff6a5c", "#8f050c", 0.7]} />
+      <hemisphereLight args={["#ffe3d2", "#9c5a3a", 0.8]} />
       <ambientLight intensity={0.12} color="#fff8ed" />
 
       <directionalLight
         ref={sunRef}
-        intensity={2.4}
-        color="#fff1e0"
+        intensity={2.6}
+        color="#ffe6c4"
         castShadow
         shadow-mapSize={[SHADOW_MAP_SIZE, SHADOW_MAP_SIZE]}
         shadow-camera-left={-SHADOW_EXTENT}

@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { TERRAIN_PADS } from "../stages/worldZones";
 
 /**
  * The 3D foundation's physical world: one continuous S-shaped road laid
@@ -123,10 +124,21 @@ export function distanceToRoad(x: number, z: number): number {
   return Math.sqrt(best);
 }
 
+/** 0–1: how strongly the stage pads (see stages/worldZones.ts) level the
+ * hills at (x, z) — 1 inside a pad, easing to 0 across its falloff. */
+function padFlatten(x: number, z: number): number {
+  let flatten = 0;
+  for (const pad of TERRAIN_PADS) {
+    const d = Math.hypot(x - pad.x, z - pad.z);
+    flatten = Math.max(flatten, 1 - smoothstep(pad.radius, pad.radius + pad.falloff, d));
+  }
+  return flatten;
+}
+
 /** Full terrain height: ground + hills, with hills flattened into a
- * clean verge along the road. */
+ * clean verge along the road and under any stage building pads. */
 export function terrainHeight(x: number, z: number, roadDistance = distanceToRoad(x, z)): number {
-  const hillMask = smoothstep(ROAD_HALF_WIDTH + 0.7, ROAD_HALF_WIDTH + 6, roadDistance);
+  const hillMask = smoothstep(ROAD_HALF_WIDTH + 0.7, ROAD_HALF_WIDTH + 6, roadDistance) * (1 - padFlatten(x, z));
   // Tuck the ground just under the pavement so the road never z-fights.
   const verge = roadDistance < ROAD_HALF_WIDTH + 0.4 ? -0.02 : 0;
   return groundHeight(x, z) + hillHeight(x, z) * hillMask + verge;
