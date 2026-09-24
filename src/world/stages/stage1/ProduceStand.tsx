@@ -3,42 +3,12 @@ import * as THREE from "three";
 import { InstancedBatch } from "../common/InstancedBatch";
 import { createRandom, groundY, instanceMatrix } from "../common/placement";
 import { HAY_BALES, PRODUCE_STAND } from "./stage1Layout";
+import { CRATE, PRODUCE, PRODUCE_COLORS, PRODUCE_GEOMETRY, WOOD, WOOD_DARK, type Placed } from "./harvest";
+import { Basket, Crate } from "./HarvestKit";
 
-const WOOD = new THREE.MeshStandardMaterial({ color: "#b98a57", roughness: 0.8, metalness: 0 });
-const WOOD_DARK = new THREE.MeshStandardMaterial({ color: "#8c6440", roughness: 0.85, metalness: 0 });
-const WICKER = new THREE.MeshStandardMaterial({ color: "#c99a5c", roughness: 0.9, metalness: 0, side: THREE.DoubleSide });
 const CANVAS_RED = new THREE.MeshStandardMaterial({ color: "#cf1f24", roughness: 0.7, metalness: 0 });
 const CANVAS_CREAM = new THREE.MeshStandardMaterial({ color: "#f5ecdc", roughness: 0.75, metalness: 0 });
 const HAY = new THREE.MeshStandardMaterial({ color: "#dcb866", roughness: 0.95, metalness: 0 });
-const PRODUCE = new THREE.MeshStandardMaterial({ color: "#ffffff", roughness: 0.4, metalness: 0 });
-
-const PRODUCE_GEOMETRY = new THREE.SphereGeometry(1, 10, 8);
-const PRODUCE_COLORS = [
-  new THREE.Color("#d42a1f"),
-  new THREE.Color("#e8892b"),
-  new THREE.Color("#8fb04d"),
-  new THREE.Color("#e9c649"),
-];
-
-const BASKET_GEOMETRY = new THREE.LatheGeometry(
-  [
-    new THREE.Vector2(0, 0),
-    new THREE.Vector2(0.034, 0),
-    new THREE.Vector2(0.042, 0.02),
-    new THREE.Vector2(0.05, 0.05),
-  ],
-  18
-);
-
-// Crate: ≈0.6 m x 0.35 m x 0.45 m.
-const CRATE = { w: 0.13, h: 0.075, d: 0.1 };
-
-interface Placed {
-  x: number;
-  y: number;
-  z: number;
-  yaw: number;
-}
 
 /** Stand-local layout (local +z faces the road; x runs along the counter). */
 const CRATES_ON_TABLE: Placed[] = [
@@ -56,43 +26,6 @@ const BASKETS: Placed[] = [
   { x: -0.4, y: 0, z: 0.34, yaw: 0 },
   { x: 0.36, y: 0, z: 0.38, yaw: 0 },
 ];
-
-function Crate({ x, y, z, yaw }: Placed) {
-  const { w, h, d } = CRATE;
-  const t = 0.008;
-  return (
-    <group position={[x, y, z]} rotation={[0, yaw, 0]}>
-      <mesh material={WOOD_DARK} position={[0, t / 2, 0]} castShadow receiveShadow>
-        <boxGeometry args={[w, t, d]} />
-      </mesh>
-      {[-1, 1].map((s) => (
-        <mesh key={`x${s}`} material={WOOD} position={[(s * (w - t)) / 2, h / 2, 0]} castShadow receiveShadow>
-          <boxGeometry args={[t, h, d]} />
-        </mesh>
-      ))}
-      {[-1, 1].map((s) => (
-        <group key={`z${s}`} position={[0, 0, (s * (d - t)) / 2]}>
-          {[0.2, 0.5, 0.8].map((f) => (
-            <mesh key={f} material={WOOD} position={[0, h * f, 0]} castShadow receiveShadow>
-              <boxGeometry args={[w, h * 0.22, t]} />
-            </mesh>
-          ))}
-        </group>
-      ))}
-    </group>
-  );
-}
-
-function Basket({ x, y, z }: Placed) {
-  return (
-    <group position={[x, y, z]}>
-      <mesh geometry={BASKET_GEOMETRY} material={WICKER} castShadow receiveShadow />
-      <mesh material={WOOD_DARK} position={[0, 0.05, 0]} rotation={[Math.PI / 2, 0, 0]} castShadow>
-        <torusGeometry args={[0.05, 0.005, 6, 20]} />
-      </mesh>
-    </group>
-  );
-}
 
 /** A farm-gate produce stand: counter, striped brand-red awning, crates
  * and baskets brimming with harvest — the "products" at their origin. */

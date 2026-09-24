@@ -24,6 +24,7 @@ const CROP_STYLES: Record<CropKind, CropStyle> = {
   wheat: { rowSpacing: 0.13, plantSpacing: 0.085, soil: "#a4794d", furrow: "#8a6139" },
   sprouts: { rowSpacing: 0.2, plantSpacing: 0.1, soil: "#8f6140", furrow: "#6f4a2f" },
   tomatoes: { rowSpacing: 0.3, plantSpacing: 0.22, soil: "#86593a", furrow: "#684429" },
+  squash: { rowSpacing: 0.32, plantSpacing: 0.24, soil: "#8a5d3b", furrow: "#6d462b" },
 };
 
 // Low-poly but smooth-shaded plant forms, shared by every field.
@@ -35,6 +36,7 @@ const FRUIT_GEOMETRY = new THREE.SphereGeometry(1, 8, 6);
 
 const PLANT_MATERIAL = new THREE.MeshStandardMaterial({ color: "#ffffff", roughness: 0.75, metalness: 0 });
 const FRUIT_MATERIAL = new THREE.MeshStandardMaterial({ color: "#d9221b", roughness: 0.35, metalness: 0 });
+const PRODUCE_MATERIAL = new THREE.MeshStandardMaterial({ color: "#ffffff", roughness: 0.45, metalness: 0 });
 const SOIL_MATERIAL = new THREE.MeshStandardMaterial({
   vertexColors: true,
   roughness: 0.97,
@@ -49,6 +51,8 @@ const GREENS = [new THREE.Color("#7a9c52"), new THREE.Color("#98ba66"), new THRE
 const WHEAT = [new THREE.Color("#e3be6c"), new THREE.Color("#d8ac56"), new THREE.Color("#ecd08a")];
 const SPROUTS = [new THREE.Color("#a9c56a"), new THREE.Color("#94b35a")];
 const BUSH = [new THREE.Color("#5d8743"), new THREE.Color("#6f9a4f")];
+const SQUASH_LEAVES = [new THREE.Color("#6b9148"), new THREE.Color("#7fa656")];
+const SQUASH_COLORS = [new THREE.Color("#e38b2c"), new THREE.Color("#d9a441"), new THREE.Color("#e9b650")];
 
 /** Ridge profile across a row: 1 on the row line, 0 in the furrow between rows. */
 function ridge(lz: number, depth: number, rowSpacing: number): number {
@@ -100,6 +104,8 @@ function buildSoil(field: FieldSpec, style: CropStyle): THREE.BufferGeometry {
 interface PlantBatches {
   plants: { geometry: THREE.BufferGeometry; matrices: THREE.Matrix4[]; colors: THREE.Color[] };
   fruit?: THREE.Matrix4[];
+  /** Coloured produce sitting among the leaves (squash). */
+  produce?: { matrices: THREE.Matrix4[]; colors: THREE.Color[] };
 }
 
 function buildPlants(field: FieldSpec, style: CropStyle, seed: number): PlantBatches {
@@ -108,6 +114,8 @@ function buildPlants(field: FieldSpec, style: CropStyle, seed: number): PlantBat
   const matrices: THREE.Matrix4[] = [];
   const colors: THREE.Color[] = [];
   const fruit: THREE.Matrix4[] = [];
+  const produce: THREE.Matrix4[] = [];
+  const produceColors: THREE.Color[] = [];
   // Thin the densest crops on small screens.
   const plantSpacing = style.plantSpacing * (lod && field.kind === "wheat" ? 1.6 : 1);
 
@@ -161,13 +169,41 @@ function buildPlants(field: FieldSpec, style: CropStyle, seed: number): PlantBat
           }
           break;
         }
+        case "squash": {
+          // A broad, low leafy mound with one or two squash resting beside it.
+          const r = 0.085 * v;
+          matrices.push(instanceMatrix(world.x, base + r * 0.3, world.y, yaw, r * 1.2, r * 0.5, r * 1.2));
+          colors.push(SQUASH_LEAVES[Math.floor(random() * SQUASH_LEAVES.length)]);
+          const count = 1 + Math.floor(random() * 2);
+          for (let k = 0; k < count; k++) {
+            const a = random() * Math.PI * 2;
+            const sr = 0.03 + random() * 0.012;
+            produce.push(
+              instanceMatrix(
+                world.x + Math.cos(a) * r * 0.9,
+                base + sr * 0.7,
+                world.y + Math.sin(a) * r * 0.9,
+                a,
+                sr * 1.25,
+                sr * 0.9,
+                sr
+              )
+            );
+            produceColors.push(SQUASH_COLORS[Math.floor(random() * SQUASH_COLORS.length)]);
+          }
+          break;
+        }
       }
     }
   }
 
   const geometry =
     field.kind === "wheat" ? WHEAT_GEOMETRY : field.kind === "sprouts" ? SPROUT_GEOMETRY : LEAF_GEOMETRY;
-  return { plants: { geometry, matrices, colors }, fruit: fruit.length ? fruit : undefined };
+  return {
+    plants: { geometry, matrices, colors },
+    fruit: fruit.length ? fruit : undefined,
+    produce: produce.length ? { matrices: produce, colors: produceColors } : undefined,
+  };
 }
 
 /** One cultivated field: ridged soil furrows draped over the terrain,
@@ -187,6 +223,14 @@ export function CropField({ field, seed }: { field: FieldSpec; seed: number }) {
         colors={batches.plants.colors}
       />
       {batches.fruit && <InstancedBatch geometry={FRUIT_GEOMETRY} material={FRUIT_MATERIAL} matrices={batches.fruit} />}
+      {batches.produce && (
+        <InstancedBatch
+          geometry={FRUIT_GEOMETRY}
+          material={PRODUCE_MATERIAL}
+          matrices={batches.produce.matrices}
+          colors={batches.produce.colors}
+        />
+      )}
     </group>
   );
 }
