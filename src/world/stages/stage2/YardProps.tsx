@@ -5,7 +5,7 @@ import { InstancedBatch } from "../common/InstancedBatch";
 import { Basket, Crate } from "../common/HarvestKit";
 import { CRATE, PRODUCE, PRODUCE_COLORS, PRODUCE_GEOMETRY, WOOD, WOOD_DARK, fillProduce, type Placed } from "../common/harvest";
 import { createRandom } from "../common/placement";
-import { BENCH, EVALUATION, FORKLIFT, PALLET_JACK, PALLETS, POTTED_PLANTS } from "./stage2Layout";
+import { BED_CURB, BENCH, CHARPAI, CLAY_POTS, COURTYARD_BEDS, EVALUATION, FORKLIFT, PALLET_JACK, PALLETS, POTTED_PLANTS } from "./stage2Layout";
 import { TERRACE_TOP } from "./stage2Geometry";
 
 const TABLE_TOP = new THREE.MeshStandardMaterial({ color: "#c9a06c", roughness: 0.7, metalness: 0 });
@@ -20,6 +20,15 @@ const LEAF = new THREE.MeshStandardMaterial({ color: "#5d8c3e", roughness: 0.8, 
 const BENCH_WOOD = new THREE.MeshStandardMaterial({ color: "#8c6440", roughness: 0.8, metalness: 0 });
 const CLOTH = new THREE.MeshStandardMaterial({ color: "#f3ead6", roughness: 0.85, metalness: 0 });
 const POT_GEOMETRY = new THREE.CylinderGeometry(0.045, 0.034, 0.075, 14);
+const MAT = new THREE.MeshStandardMaterial({ color: "#b5553a", roughness: 0.95, metalness: 0, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+const MAT_BORDER = new THREE.MeshStandardMaterial({ color: "#e8c46a", roughness: 0.95, metalness: 0, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 });
+const MAT_INNER = new THREE.MeshStandardMaterial({ color: "#8f3b2a", roughness: 0.95, metalness: 0, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 });
+const CURB = new THREE.MeshStandardMaterial({ color: "#efe5d0", roughness: 0.9, metalness: 0 });
+const BED_SOIL = new THREE.MeshStandardMaterial({ color: "#6e4a30", roughness: 0.95, metalness: 0 });
+const ROPE = new THREE.MeshStandardMaterial({ color: "#d9c28f", roughness: 0.95, metalness: 0 });
+const CLAY = new THREE.MeshStandardMaterial({ color: "#a9573a", roughness: 0.85, metalness: 0 });
+const MATKA_GEOMETRY = new THREE.SphereGeometry(1, 16, 12);
+
 
 const SACK_GEOMETRY = new RoundedBoxGeometry(1, 1, 1, 2, 0.35);
 const BOWL_GEOMETRY = new THREE.LatheGeometry(
@@ -88,33 +97,33 @@ function EvaluationTable() {
       fillProduce(random, produce, crate.x, crate.y + CRATE.h - 0.008, crate.z, crate.yaw, 3, 2, 0.04, 0.04);
     }
     const bowls: Array<[number, number]> = [];
-    for (let i = 0; i < 6; i++) {
-      const bx = -L / 2 + 0.3 + (i % 3) * 0.17 + (i < 3 ? 0 : 0.08);
-      const bz = i < 3 ? -0.07 : 0.07;
+    for (let i = 0; i < 4; i++) {
+      // Larger sample bowls in a row down the middle of the table.
+      const bx = -0.24 + i * 0.16;
+      const bz = i % 2 === 0 ? -0.04 : 0.04;
       bowls.push([bx, bz]);
       grains.matrices.push(
-        new THREE.Matrix4().compose(new THREE.Vector3(bx, 0.2 + 0.018, bz), new THREE.Quaternion(), new THREE.Vector3(0.05, 0.02, 0.05))
+        new THREE.Matrix4().compose(new THREE.Vector3(bx, 0.2 + 0.024, bz), new THREE.Quaternion(), new THREE.Vector3(0.066, 0.026, 0.066))
       );
       grains.colors.push(GRAIN_COLORS[i % GRAIN_COLORS.length]);
     }
-    // A small basket of samples in the middle.
-    fillProduce(random, produce, 0.33, 0.2 + 0.045, 0.0, 0, 2, 2, 0.032, 0.032, PRODUCE_COLORS[0]);
+
     return { crates, bowls, produce, grains };
   }, [L]);
 
   return (
     <group position={[spec.x, TERRACE_TOP, spec.z]} rotation={[0, spec.rotationY, 0]}>
       <mesh material={TABLE_TOP} position={[0, 0.185, 0]} castShadow receiveShadow>
-        <boxGeometry args={[L, 0.022, 0.3]} />
+        <boxGeometry args={[L, 0.022, 0.32]} />
       </mesh>
       <mesh material={CLOTH} position={[0, 0.198, 0]} receiveShadow>
-        <boxGeometry args={[L - 0.12, 0.004, 0.26]} />
+        <boxGeometry args={[L - 0.06, 0.004, 0.3]} />
       </mesh>
       {[
-        [-L / 2 + 0.04, -0.12],
-        [L / 2 - 0.04, -0.12],
-        [-L / 2 + 0.04, 0.12],
-        [L / 2 - 0.04, 0.12],
+        [-L / 2 + 0.04, -0.13],
+        [L / 2 - 0.04, -0.13],
+        [-L / 2 + 0.04, 0.13],
+        [L / 2 - 0.04, 0.13],
       ].map(([lx, lz], i) => (
         <mesh key={i} material={WOOD_DARK} position={[lx, 0.09, lz]} castShadow>
           <boxGeometry args={[0.025, 0.18, 0.025]} />
@@ -123,9 +132,8 @@ function EvaluationTable() {
       {setting.crates.map((crate, i) => (
         <Crate key={i} {...crate} />
       ))}
-      <Basket x={0.33} y={0.2} z={0} yaw={0} />
       {setting.bowls.map(([bx, bz], i) => (
-        <mesh key={i} geometry={BOWL_GEOMETRY} material={BOWL} position={[bx, 0.2, bz]} castShadow receiveShadow />
+        <mesh key={i} geometry={BOWL_GEOMETRY} material={BOWL} position={[bx, 0.2, bz]} scale={1.2} castShadow receiveShadow />
       ))}
       <InstancedBatch geometry={PRODUCE_GEOMETRY} material={PRODUCE} matrices={setting.produce.matrices} colors={setting.produce.colors} />
       <InstancedBatch geometry={GRAIN_GEOMETRY} material={GRAIN} matrices={setting.grains.matrices} colors={setting.grains.colors} />
@@ -388,12 +396,103 @@ function Bench() {
   );
 }
 
+/** A woven dhurrie-style mat under the evaluation group: terracotta field,
+ * ochre border band and a deep-red centre panel. */
+function EvaluationMat() {
+  const { x, z, rotationY, width, depth } = EVALUATION.mat;
+  return (
+    <group position={[x, TERRACE_TOP + 0.003, z]} rotation={[0, rotationY, 0]}>
+      <mesh material={MAT} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <planeGeometry args={[width, depth]} />
+      </mesh>
+      <mesh material={MAT_BORDER} position={[0, 0.001, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <planeGeometry args={[width - 0.1, depth - 0.1]} />
+      </mesh>
+      <mesh material={MAT} position={[0, 0.002, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <planeGeometry args={[width - 0.16, depth - 0.16]} />
+      </mesh>
+      <mesh material={MAT_INNER} position={[0, 0.003, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <planeGeometry args={[width * 0.5, depth * 0.45]} />
+      </mesh>
+    </group>
+  );
+}
+
+/** Low curbed planting beds (the plants themselves are in Surroundings). */
+function CourtyardBeds() {
+  return (
+    <group>
+      {COURTYARD_BEDS.map(([x, z, w, d, r], i) => (
+        <group key={i} position={[x, TERRACE_TOP, z]} rotation={[0, r, 0]}>
+          <mesh material={CURB} position={[0, BED_CURB / 2, 0]} castShadow receiveShadow>
+            <boxGeometry args={[w, BED_CURB, d]} />
+          </mesh>
+          <mesh material={BED_SOIL} position={[0, BED_CURB + 0.001, 0]} receiveShadow>
+            <boxGeometry args={[w - 0.05, 0.004, d - 0.05]} />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  );
+}
+
+/** A woven rope charpai (cot) resting in the courtyard. */
+function Charpai() {
+  const { x, z, rotationY } = CHARPAI;
+  return (
+    <group position={[x, TERRACE_TOP, z]} rotation={[0, rotationY, 0]}>
+      {[-1, 1].flatMap((sx) =>
+        [-1, 1].map((sz) => (
+          <mesh key={`${sx}${sz}`} material={BENCH_WOOD} position={[sx * 0.2, 0.045, sz * 0.09]} castShadow>
+            <cylinderGeometry args={[0.012, 0.01, 0.09, 8]} />
+          </mesh>
+        ))
+      )}
+      {[-1, 1].map((sz) => (
+        <mesh key={`r${sz}`} material={BENCH_WOOD} position={[0, 0.085, sz * 0.09]} castShadow>
+          <boxGeometry args={[0.44, 0.016, 0.016]} />
+        </mesh>
+      ))}
+      {[-1, 1].map((sx) => (
+        <mesh key={`e${sx}`} material={BENCH_WOOD} position={[sx * 0.2, 0.085, 0]} castShadow>
+          <boxGeometry args={[0.016, 0.016, 0.2]} />
+        </mesh>
+      ))}
+      <mesh material={ROPE} position={[0, 0.087, 0]} castShadow receiveShadow>
+        <boxGeometry args={[0.38, 0.008, 0.165]} />
+      </mesh>
+    </group>
+  );
+}
+
+/** A cluster of round clay water pots (matkas) by the verandah end. */
+function ClayPots() {
+  const { x, z } = CLAY_POTS;
+  return (
+    <group position={[x, TERRACE_TOP, z]}>
+      {[
+        [0, 0, 0.045],
+        [0.08, 0.03, 0.038],
+        [0.03, -0.075, 0.035],
+      ].map(([px, pz, r], i) => (
+        <group key={i} position={[px, 0, pz]}>
+          <mesh geometry={MATKA_GEOMETRY} material={CLAY} position={[0, r * 0.95, 0]} scale={[r, r * 0.95, r]} castShadow receiveShadow />
+          <mesh material={CLAY} position={[0, r * 1.85, 0]} castShadow>
+            <cylinderGeometry args={[r * 0.38, r * 0.45, r * 0.3, 12]} />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  );
+}
+
 /** Everything in the courtyard: the evaluation table, samples and raw
  * materials (the key story moment); pallets, forklift and pallet jack by the
  * loading area (secondary); potted plants and a bench. */
 export function YardProps() {
   return (
     <group>
+      <EvaluationMat />
       <EvaluationTable />
       <SampleSpread />
       <RawMaterials />
@@ -402,6 +501,9 @@ export function YardProps() {
       <PalletJack />
       <PottedPlants />
       <Bench />
+      <CourtyardBeds />
+      <Charpai />
+      <ClayPots />
     </group>
   );
 }

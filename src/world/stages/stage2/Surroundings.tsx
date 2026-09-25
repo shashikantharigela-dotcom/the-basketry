@@ -10,7 +10,9 @@ import { TropicalMeshes } from "../common/TropicalMeshes";
 import { addTree, createTreeBatches } from "../common/treeKit";
 import { addBanana, addBougainvillea, addFloweringShrub, addPalm, createTropicalBatches } from "../common/tropicalKit";
 import {
+  BED_CURB,
   BOUGAINVILLEA,
+  COURTYARD_BEDS,
   COURTYARD_TREES,
   DISTANT_PALMS,
   FRUIT_ORCHARD,
@@ -231,6 +233,19 @@ export function Surroundings() {
       if (i % 2 === 0) addBougainvillea(x, z, 0.8 + random() * 0.3, random, tropicalBatches);
       else addFloweringShrub(x, z, 1.0, random, tropicalBatches, BLOOMS);
     });
+    // The curbed beds round the evaluation area: leafy and flowering shrubs.
+    for (const [bx, bz, bw, bd, br] of COURTYARD_BEDS) {
+      const count = Math.max(3, Math.round(Math.max(bw, bd) / 0.2));
+      for (let k = 0; k < count; k++) {
+        const t = (k + 0.5) / count - 0.5;
+        const lx = bw > bd ? t * (bw - 0.12) : (random() - 0.5) * 0.08;
+        const lz = bw > bd ? (random() - 0.5) * 0.08 : t * (bd - 0.12);
+        const x = bx + lx * Math.cos(br) + lz * Math.sin(br);
+        const z = bz - lx * Math.sin(br) + lz * Math.cos(br);
+        if (k % 3 === 1) addBougainvillea(x, z, 0.6, random, tropicalBatches, courtyardY + BED_CURB);
+        else addFloweringShrub(x, z, 0.95, random, tropicalBatches, BLOOMS, courtyardY + BED_CURB);
+      }
+    }
     // A flowering bed just inside the wall: bougainvillea and small blooms, with the odd banana.
     WALL_BED_POINTS.forEach(([x, z], i) => {
       if (i % 5 === 2) addBanana(x, z, 0.7, random, tropicalBatches, courtyardY);
