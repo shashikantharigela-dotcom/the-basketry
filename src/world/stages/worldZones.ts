@@ -3,6 +3,7 @@ import { SCATTER_BOUNDS, SCATTER_KEEP_OUT, STAGE1_PADS } from "./stage1/stage1La
 import { STAGE2_BOUNDS, STAGE2_KEEP_OUT, STAGE2_PADS, STAGE2_ZONE } from "./stage2/stage2Layout";
 import { STAGE3_BOUNDS, STAGE3_KEEP_OUT, STAGE3_PADS, STAGE3_ZONE } from "./stage3/stage3Layout";
 import { STAGE4_BOUNDS, STAGE4_KEEP_OUT, STAGE4_PADS, STAGE4_STREET_CLEARING, STAGE4_ZONE } from "./stage4/stage4Layout";
+import { STAGE5_BOUNDS, STAGE5_KEEP_OUT, STAGE5_PADS } from "./stage5/stage5Layout";
 
 /**
  * Registry of how each story stage shapes the shared terrain. The
@@ -44,9 +45,10 @@ export interface TerrainZone {
 /** Optional ground tints a stage can lay over the shared natural landscape.
  * Stage 1 uses none. Stage 2 greens its stretch (lush Indian farmland),
  * easing in only after Stage 1's land ends. */
+// (Stage 5's exhibition lies inside the fade of Stage 4's city green, so it adds no zone of its own.)
 export const TERRAIN_ZONES: TerrainZone[] = [STAGE2_ZONE, STAGE3_ZONE, STAGE4_ZONE];
 
-export const TERRAIN_PADS: TerrainPad[] = [...STAGE1_PADS, ...STAGE2_PADS, ...STAGE3_PADS, ...STAGE4_PADS];
+export const TERRAIN_PADS: TerrainPad[] = [...STAGE1_PADS, ...STAGE2_PADS, ...STAGE3_PADS, ...STAGE4_PADS, ...STAGE5_PADS];
 
 /** Areas the world-wide vegetation never grows into (a stage's fields,
  * yards, lanes and buildings). */
@@ -70,6 +72,7 @@ export const VEGETATION_CLEARINGS: Rect[] = [
   ...STAGE3_KEEP_OUT,
   ...STAGE4_KEEP_OUT,
   ...STAGE4_STREET_CLEARING,
+  ...STAGE5_KEEP_OUT,
 ];
 
 export const VEGETATION_THINNING: Array<{
@@ -85,4 +88,6 @@ export const VEGETATION_THINNING: Array<{
   { ...STAGE3_BOUNDS, minX: -26, maxX: 26, maxZ: -34, factor: 0.85, dropPoplars: true },
   // The city: the wild countryside gives way to planted streets.
   { ...STAGE4_BOUNDS, factor: 0.35, dropPoplars: true },
+  // The exhibition and the city beyond it (after Stage 4's region, which wins where they overlap).
+  { ...STAGE5_BOUNDS, factor: 0.3, dropPoplars: true },
 ];

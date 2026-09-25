@@ -1,7 +1,9 @@
 import { create } from "zustand";
 
 interface SceneState {
-  /** Normalized 0–1 scroll progress across the entire pinned narrative. */
+  /** Scroll progress across the pinned narrative: 0–1 in the legacy scene;
+   * in the foundation world it runs to JOURNEY_LENGTH (see journey.ts), so
+   * progress values of the earlier stages keep their meaning. */
   progress: number;
   setProgress: (value: number) => void;
   /** Multiplier applied to every ambient/idle animation (spins, orbits,

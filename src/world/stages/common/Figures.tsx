@@ -57,6 +57,8 @@ export interface FigureSpec {
   trousers?: string;
   /** "sari": a long draped skirt in the shirt colour, with a sash, instead of trousers. */
   outfit?: "trousers" | "sari";
+  /** Uniform size (e.g. ~0.6 for a child); default 1. */
+  scale?: number;
 }
 
 /** Arm pitch (left, right) per pose: forward to carry, one lowered with a
@@ -86,6 +88,7 @@ export function Figure({
   hatColor,
   trousers,
   outfit = "trousers",
+  scale = 1,
   surfaceY = groundY,
 }: FigureSpec & { surfaceY?: (x: number, z: number) => number }) {
   const body = shirtMaterial(shirt);
@@ -94,7 +97,7 @@ export function Figure({
   const [leftArmPitch, rightArmPitch] = ARM_PITCH[pose];
 
   return (
-    <group position={[x, surfaceY(x, z) - 0.005, z]} rotation={[0, yaw, 0]}>
+    <group position={[x, surfaceY(x, z) - 0.005, z]} rotation={[0, yaw, 0]} scale={scale}>
       {outfit === "sari" ? (
         <>
           <mesh material={body} position={[0, 0.095, 0]} castShadow>

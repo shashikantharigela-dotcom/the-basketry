@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { TERRAIN_PADS } from "../stages/worldZones";
+import { JOURNEY_LENGTH } from "./journey";
 
 /**
  * The 3D foundation's physical world: one continuous S-shaped road laid
@@ -205,13 +206,15 @@ export function getRoadTurn(u: number, du = 0.01): number {
 export const TRUCK_SYNC = {
   /** Road fraction the truck starts at (scroll = 0) — clear of the terrain rim. */
   startU: 0.1,
-  /** Road fraction the truck ends at (scroll = 1). */
+  /** Road fraction the truck reaches at progress 1 (it continues at the same
+   * pace up to JOURNEY_LENGTH — see journey.ts). */
   endU: 0.86,
 };
 
 /** Maps global scroll progress (0–1) to the truck's position along the road (0–1). */
 export function truckRoadU(progress: number): number {
-  return THREE.MathUtils.lerp(TRUCK_SYNC.startU, TRUCK_SYNC.endU, clamp01(progress));
+  // Past progress 1 the journey continues at the same pace (see journey.ts).
+  return THREE.MathUtils.lerp(TRUCK_SYNC.startU, TRUCK_SYNC.endU, THREE.MathUtils.clamp(progress, 0, JOURNEY_LENGTH));
 }
 
 /** Truck pose on the road for a given scroll progress — same signature as

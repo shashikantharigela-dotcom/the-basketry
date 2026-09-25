@@ -6,11 +6,14 @@ interface NarrativeControllerProps {
   children: ReactNode;
   /** How much scroll distance the whole pinned narrative should consume. */
   scrollLengthVh?: number;
+  /** Progress reported at the end of the scroll (1 = normalized 0–1). */
+  progressScale?: number;
 }
 
 export function NarrativeController({
   children,
   scrollLengthVh = 400,
+  progressScale = 1,
 }: NarrativeControllerProps) {
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const pinnedRef = useRef<HTMLDivElement | null>(null);
@@ -30,7 +33,7 @@ export function NarrativeController({
             scrub: 1,
             pin: pinnedRef.current,
             pinSpacing: false,
-            onUpdate: (self) => setProgress(self.progress),
+            onUpdate: (self) => setProgress(self.progress * progressScale),
           });
         },
         // Mobile: shorter, slightly less smoothed scrub so it doesn't feel
@@ -44,14 +47,14 @@ export function NarrativeController({
             scrub: 0.5,
             pin: pinnedRef.current,
             pinSpacing: false,
-            onUpdate: (self) => setProgress(self.progress),
+            onUpdate: (self) => setProgress(self.progress * progressScale),
           });
         },
       });
     });
 
     return () => ctx.revert();
-  }, [setProgress]);
+  }, [setProgress, progressScale]);
 
   return (
     <div

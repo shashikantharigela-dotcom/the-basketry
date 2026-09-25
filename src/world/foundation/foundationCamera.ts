@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { JOURNEY_LENGTH } from "./journey";
 import { getRoadPoint, getRoadRight, getRoadTangent, getRoadTurn, smoothstep, terrainHeight, truckRoadU } from "./sRoad";
 import { STAGE1_FOCUS } from "../stages/stage1/stage1Layout";
 import { STAGE2_FOCUS } from "../stages/stage2/stage2Layout";
@@ -7,12 +8,14 @@ import { STAGE3_FOCUS } from "../stages/stage3/stage3Layout";
 import { apronY } from "../stages/stage3/stage3Geometry";
 import { STAGE4_FOCUS } from "../stages/stage4/stage4Layout";
 import { paveY } from "../stages/stage4/stage4Geometry";
+import { STAGE5_FOCUS } from "../stages/stage5/stage5Layout";
 
 /**
  * Cinematic camera path for the 3D foundation: a pure function of scroll
  * progress that rides along the S-road with the truck. Each story stage
  * gets its own short sequence of shots (Stage 1 ≈ 0–20%, Stage 2 ≈ 25–45%,
- * Stage 3 ≈ 50–70%, Stage 4 ≈ 74–92%)
+ * Stage 3 ≈ 50–70%, Stage 4 ≈ 74–92%; Stage 5 runs on past progress 1 —
+ * see journey.ts)
  * leaning toward that stage's focus point, then the journey continues and
  * lifts into a wide overview at the end. FoundationCameraRig damps toward this every
  * frame — nothing here is smoothed or stateful.
@@ -52,6 +55,7 @@ const FOCUS_POINTS = {
   productApproaches: new THREE.Vector3(STAGE2_FOCUS.x, TERRACE_TOP + STAGE2_FOCUS.height, STAGE2_FOCUS.z),
   awarenessSetup: new THREE.Vector3(STAGE3_FOCUS.x, apronY(STAGE3_FOCUS.x, STAGE3_FOCUS.z) + STAGE3_FOCUS.height, STAGE3_FOCUS.z),
   consumerExperience: new THREE.Vector3(STAGE4_FOCUS.x, paveY(STAGE4_FOCUS.x, STAGE4_FOCUS.z) + STAGE4_FOCUS.height, STAGE4_FOCUS.z),
+  exhibition: new THREE.Vector3(STAGE5_FOCUS.x, paveY(STAGE5_FOCUS.x, STAGE5_FOCUS.z) + STAGE5_FOCUS.height, STAGE5_FOCUS.z),
 };
 type FocusId = keyof typeof FOCUS_POINTS;
 const FOCUS_IDS = Object.keys(FOCUS_POINTS) as FocusId[];
@@ -112,8 +116,20 @@ const KEYFRAMES: CameraKeyframe[] = [
   { at: 0.845, back: 3.2, up: 4.2, side: -3.0, lookAhead: 0.01, lookUp: 0.25, fov: 34, focus: { consumerExperience: 0.78 } },
   // Moving on: back behind the journey truck as the road bends away.
   { at: 0.905, back: 5.6, up: 4.8, side: -1.2, lookAhead: 0.03, lookUp: 0.3, fov: 42, focus: { consumerExperience: 0.12 } },
+  // STAGE 5 — MORE ACTIVATIONS & EXHIBITIONS (journey ≈ 0.95–1.08), after
+  // the approved reference: from the INSIDE of the hard right bend (right
+  // of travel), the road and journey truck in front, the exhibition fanned
+  // across the outside of the bend on the left, the Ferris wheel and the
+  // lit skyline behind.
+  // Approach: the wheel and the first stalls rising ahead.
+  { at: 0.965, back: 6.5, up: 5.6, side: 4.6, lookAhead: 0.04, lookUp: 0.3, fov: 42, focus: { exhibition: 0.45 } },
+  // Hero: the journey truck arriving at the event — several activations,
+  // crowds, trucks unloading, the wheel.
+  { at: 1.01, back: 4.0, up: 6.2, side: 6.0, lookAhead: 0.012, lookUp: 0.3, fov: 42, focus: { exhibition: 0.7 } },
+  // Moving on: the truck heads on round the bend, the exhibition receding on the left.
+  { at: 1.06, back: 4.6, up: 5.2, side: 3.2, lookAhead: 0.02, lookUp: 0.3, fov: 42, focus: { exhibition: 0.35 } },
   // Lift into a wide overview of the miniature world.
-  { at: 1.0, back: 16, up: 14, side: 5.0, lookAhead: 0.02, lookUp: 0, fov: 38 },
+  { at: JOURNEY_LENGTH, back: 16, up: 14, side: 5.0, lookAhead: 0.02, lookUp: 0, fov: 38 },
 ];
 
 /** How strongly the camera swings to the outside of a bend (world units per radian of turn). */
@@ -172,7 +188,7 @@ export function computeFoundationCameraPose(
   motionScale: number,
   out: FoundationCameraPose
 ): FoundationCameraPose {
-  const p = THREE.MathUtils.clamp(progress, 0, 1);
+  const p = THREE.MathUtils.clamp(progress, 0, JOURNEY_LENGTH);
   const frame = interpolate(p);
   const u = truckRoadU(p);
 
