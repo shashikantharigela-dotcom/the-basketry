@@ -4,6 +4,7 @@ import { STAGE2_BOUNDS, STAGE2_KEEP_OUT, STAGE2_PADS, STAGE2_ZONE } from "./stag
 import { STAGE3_BOUNDS, STAGE3_KEEP_OUT, STAGE3_PADS, STAGE3_ZONE } from "./stage3/stage3Layout";
 import { STAGE4_BOUNDS, STAGE4_KEEP_OUT, STAGE4_PADS, STAGE4_STREET_CLEARING, STAGE4_ZONE } from "./stage4/stage4Layout";
 import { STAGE5_BOUNDS, STAGE5_KEEP_OUT, STAGE5_PADS } from "./stage5/stage5Layout";
+import { STAGE6_KEEP_OUT, STAGE6_PADS } from "./stage6/stage6Layout";
 
 /**
  * Registry of how each story stage shapes the shared terrain. The
@@ -48,7 +49,14 @@ export interface TerrainZone {
 // (Stage 5's exhibition lies inside the fade of Stage 4's city green, so it adds no zone of its own.)
 export const TERRAIN_ZONES: TerrainZone[] = [STAGE2_ZONE, STAGE3_ZONE, STAGE4_ZONE];
 
-export const TERRAIN_PADS: TerrainPad[] = [...STAGE1_PADS, ...STAGE2_PADS, ...STAGE3_PADS, ...STAGE4_PADS, ...STAGE5_PADS];
+export const TERRAIN_PADS: TerrainPad[] = [
+  ...STAGE1_PADS,
+  ...STAGE2_PADS,
+  ...STAGE3_PADS,
+  ...STAGE4_PADS,
+  ...STAGE5_PADS,
+  ...STAGE6_PADS,
+];
 
 /** Areas the world-wide vegetation never grows into (a stage's fields,
  * yards, lanes and buildings). */
@@ -73,6 +81,7 @@ export const VEGETATION_CLEARINGS: Rect[] = [
   ...STAGE4_KEEP_OUT,
   ...STAGE4_STREET_CLEARING,
   ...STAGE5_KEEP_OUT,
+  ...STAGE6_KEEP_OUT,
 ];
 
 export const VEGETATION_THINNING: Array<{

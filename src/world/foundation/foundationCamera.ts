@@ -9,13 +9,15 @@ import { apronY } from "../stages/stage3/stage3Geometry";
 import { STAGE4_FOCUS } from "../stages/stage4/stage4Layout";
 import { paveY } from "../stages/stage4/stage4Geometry";
 import { STAGE5_FOCUS } from "../stages/stage5/stage5Layout";
+import { JOURNEY_FOCUS, STAGE6_FOCUS } from "../stages/stage6/stage6Layout";
+import { plazaY } from "../stages/stage6/stage6Geometry";
 
 /**
  * Cinematic camera path for the 3D foundation: a pure function of scroll
  * progress that rides along the S-road with the truck. Each story stage
  * gets its own short sequence of shots (Stage 1 ≈ 0–20%, Stage 2 ≈ 25–45%,
- * Stage 3 ≈ 50–70%, Stage 4 ≈ 74–92%; Stage 5 runs on past progress 1 —
- * see journey.ts)
+ * Stage 3 ≈ 50–70%, Stage 4 ≈ 74–92%; Stages 5 and 6 run on past progress 1
+ * — see journey.ts)
  * leaning toward that stage's focus point, then the journey continues and
  * lifts into a wide overview at the end. FoundationCameraRig damps toward this every
  * frame — nothing here is smoothed or stateful.
@@ -56,6 +58,9 @@ const FOCUS_POINTS = {
   awarenessSetup: new THREE.Vector3(STAGE3_FOCUS.x, apronY(STAGE3_FOCUS.x, STAGE3_FOCUS.z) + STAGE3_FOCUS.height, STAGE3_FOCUS.z),
   consumerExperience: new THREE.Vector3(STAGE4_FOCUS.x, paveY(STAGE4_FOCUS.x, STAGE4_FOCUS.z) + STAGE4_FOCUS.height, STAGE4_FOCUS.z),
   exhibition: new THREE.Vector3(STAGE5_FOCUS.x, paveY(STAGE5_FOCUS.x, STAGE5_FOCUS.z) + STAGE5_FOCUS.height, STAGE5_FOCUS.z),
+  ecosystem: new THREE.Vector3(STAGE6_FOCUS.x, plazaY(STAGE6_FOCUS.x, STAGE6_FOCUS.z) + STAGE6_FOCUS.height, STAGE6_FOCUS.z),
+  /** The middle of the whole journey — the final reveal looks back along it. */
+  journey: new THREE.Vector3(JOURNEY_FOCUS.x, terrainHeight(JOURNEY_FOCUS.x, JOURNEY_FOCUS.z) + JOURNEY_FOCUS.height, JOURNEY_FOCUS.z),
 };
 type FocusId = keyof typeof FOCUS_POINTS;
 const FOCUS_IDS = Object.keys(FOCUS_POINTS) as FocusId[];
@@ -128,8 +133,14 @@ const KEYFRAMES: CameraKeyframe[] = [
   { at: 1.01, back: 4.0, up: 6.2, side: 6.0, lookAhead: 0.012, lookUp: 0.3, fov: 42, focus: { exhibition: 0.7 } },
   // Moving on: the truck heads on round the bend, the exhibition receding on the left.
   { at: 1.06, back: 4.6, up: 5.2, side: 3.2, lookAhead: 0.02, lookUp: 0.3, fov: 42, focus: { exhibition: 0.35 } },
-  // Lift into a wide overview of the miniature world.
-  { at: JOURNEY_LENGTH, back: 16, up: 14, side: 5.0, lookAhead: 0.02, lookUp: 0, fov: 38 },
+  // STAGE 6 — THE BASKETRY ECOSYSTEM (journey ≈ 1.07–1.2): the destination.
+  // Approach: behind the truck as it arrives, the road leading into the U.
+  { at: 1.09, back: 5.0, up: 7.0, side: 0.6, lookAhead: 0.03, lookUp: 0.3, fov: 44, focus: { ecosystem: 0.55 } },
+  // Hero — the final reveal: high above the far side of the destination,
+  // looking back over the U along the whole S-road journey.
+  { at: 1.145, back: -31, up: 26, side: 7.2, lookAhead: 0, lookUp: 0, fov: 42, focus: { journey: 0.25 } },
+  // Final: a little higher and wider — the whole connected world as one.
+  { at: JOURNEY_LENGTH, back: -35, up: 31, side: 8, lookAhead: 0, lookUp: 0, fov: 44, focus: { journey: 0.38 } },
 ];
 
 /** How strongly the camera swings to the outside of a bend (world units per radian of turn). */

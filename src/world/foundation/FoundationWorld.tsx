@@ -13,6 +13,7 @@ import { Stage2ProductApproaches } from "../stages/stage2/Stage2ProductApproache
 import { Stage3AwarenessSetup } from "../stages/stage3/Stage3AwarenessSetup";
 import { Stage4ConsumerExperience } from "../stages/stage4/Stage4ConsumerExperience";
 import { Stage5Exhibition } from "../stages/stage5/Stage5Exhibition";
+import { Stage6Ecosystem } from "../stages/stage6/Stage6Ecosystem";
 
 /**
  * The 3D foundation: rounded miniature terrain, one continuous S-road,
@@ -38,6 +39,7 @@ export function FoundationWorld() {
       <Stage3AwarenessSetup />
       <Stage4ConsumerExperience />
       <Stage5Exhibition />
+      <Stage6Ecosystem />
 
       {/* The existing truck component + GLB, unchanged — only its pose
           source is swapped to the S-road (see TRUCK_SYNC in sRoad.ts). */}
