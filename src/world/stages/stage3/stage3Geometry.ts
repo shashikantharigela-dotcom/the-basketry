@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { getRoadRight, ROAD_CURVE } from "../../foundation/sRoad";
 import { groundY } from "../common/placement";
 import { roadOffsetLine, roadOffsetPoint } from "../stage2/stage2Geometry";
-import { APRON, BUNTING_POLES, PARKED_TRUCK, PULL_OFF, type ApronPlacement } from "./stage3Layout";
+import { APRON, BUNTING_POLES, FRONT_POTS, PARKED_TRUCK, PULL_OFF, type ApronPlacement } from "./stage3Layout";
 
 /**
  * Stage 3 geometry that must follow the road exactly — resolved from the
@@ -82,6 +82,21 @@ export const APRON_EDGE_PLANTING: Array<[number, number]> = roadOffsetLine(
   APRON.uTo - 0.004,
   APRON.offsetFar - 0.32,
   16
+);
+
+/** Low planting along the far (camera-side) verge, beyond the fence:
+ * two loose rows, kept low so they never block the view of the road. */
+export const CAMERA_VERGE_PLANTING: Array<[number, number]> = [
+  ...roadOffsetLine(0.505, 0.635, 1.7, 30),
+  ...roadOffsetLine(0.51, 0.63, 2.5, 22),
+];
+
+/** The front row of potted plants along the apron's road edge. */
+export const FRONT_POT_POSITIONS: Array<[number, number]> = roadOffsetLine(
+  FRONT_POTS.uFrom,
+  FRONT_POTS.uTo,
+  FRONT_POTS.offset,
+  FRONT_POTS.count - 1
 );
 
 /** The parked truck's fixed pose, in the same form the journey truck uses. */

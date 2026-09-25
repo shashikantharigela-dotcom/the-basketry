@@ -64,50 +64,73 @@ export interface ApronPlacement {
   yaw?: number;
 }
 
-/** The red pop-up canopy over the display shelves and sampling counter. */
-export const CANOPY: ApronPlacement = { u: 0.541, offset: -3.35, yaw: 0.05 };
-/** Display shelving under the canopy (being stocked). */
-export const SHELVES: ApronPlacement[] = [
-  { u: 0.537, offset: -3.9, yaw: 0.05 },
-  { u: 0.545, offset: -3.9, yaw: 0.05 },
-];
-/** The sampling / demo counter at the front of the canopy. */
-export const COUNTER: ApronPlacement = { u: 0.541, offset: -2.72, yaw: 0.05 };
-/** A folding display table still being arranged, beside the canopy. */
-export const SIDE_TABLE: ApronPlacement = { u: 0.530, offset: -3.1, yaw: -0.25 };
-/** White market parasols. */
+/** The red pop-up canopy; its display shelves (at the back) and sampling
+ * counter (at the front) are placed inside it, in its own frame. */
+export const CANOPY: ApronPlacement = { u: 0.541, offset: -3.3, yaw: 0.04 };
+/** Display tables, each under a white market parasol: produce in woven
+ * baskets on one, packed products on the other. */
+export const BASKET_TABLE: ApronPlacement = { u: 0.5285, offset: -3.45, yaw: 0.2 };
+export const PRODUCT_TABLE: ApronPlacement = { u: 0.5535, offset: -3.55, yaw: -0.2 };
 export const PARASOLS: ApronPlacement[] = [
-  { u: 0.528, offset: -3.9 },
-  { u: 0.554, offset: -3.75 },
+  { u: 0.5285, offset: -3.45 },
+  { u: 0.5535, offset: -3.55 },
 ];
+/** A folding table still being arranged, at the front left. */
+export const SIDE_TABLE: ApronPlacement = { u: 0.5295, offset: -2.35, yaw: -0.25 };
+/** A large branded display crate on a pallet at the front of the activation. */
+export const DISPLAY_CRATE: ApronPlacement = { u: 0.5485, offset: -1.85, yaw: -0.3 };
 /** Tall standee banners (brand red and white, basket emblem — no text). */
 export const BANNERS: ApronPlacement[] = [
-  { u: 0.523, offset: -2.25, yaw: 0.35 },
+  { u: 0.522, offset: -2.3, yaw: 0.35 },
+  { u: 0.534, offset: -4.35, yaw: 0.05 },
   { u: 0.559, offset: -2.3, yaw: -0.35 },
 ];
 /** A blank A-frame board by the counter. */
-export const A_FRAME: ApronPlacement = { u: 0.534, offset: -2.1, yaw: 0.4 };
+export const A_FRAME: ApronPlacement = { u: 0.5355, offset: -2.0, yaw: 0.4 };
 /** Bunting poles: the bunting is strung between them, along the apron. */
 export const BUNTING_POLES: ApronPlacement[] = [
-  { u: 0.520, offset: -4.35 },
+  { u: 0.52, offset: -4.35 },
   { u: 0.541, offset: -4.45 },
   { u: 0.563, offset: -4.3 },
   { u: 0.564, offset: -2.75 },
 ];
 /** Cartons and crates: unloaded stock moving from the truck to the stall. */
 export const CARTON_STACKS: Array<ApronPlacement & { count: number; pallet?: boolean }> = [
-  { u: 0.5625, offset: -2.25, yaw: 0.1, count: 5, pallet: true },
-  { u: 0.562, offset: -3.2, yaw: -0.2, count: 4, pallet: true },
+  // Beside the truck's open doors.
+  { u: 0.5625, offset: -2.25, yaw: 0.1, count: 9, pallet: true },
+  { u: 0.5615, offset: -3.25, yaw: -0.2, count: 7, pallet: true },
+  { u: 0.5575, offset: -4.0, yaw: 0.15, count: 6, pallet: true },
+  // Set down on the way to the stall.
   { u: 0.552, offset: -2.55, yaw: 0.3, count: 3 },
-  { u: 0.534, offset: -3.75, yaw: 0.0, count: 2 },
+  // A trail of stock along the route from the truck to the stall.
+  { u: 0.5605, offset: -1.95, yaw: -0.25, count: 4 },
+  { u: 0.5557, offset: -2.15, yaw: 0.4, count: 2 },
+  { u: 0.5482, offset: -3.15, yaw: -0.1, count: 3 },
+  // Behind the canopy, feeding the shelves.
+  { u: 0.5445, offset: -4.2, yaw: 0.0, count: 5, pallet: true },
+  { u: 0.537, offset: -4.15, yaw: 0.2, count: 2 },
 ];
-/** Potted plants dressing the stall. */
+/** Cartons opened beside the stall, products showing, being unpacked. */
+export const OPEN_CARTONS: ApronPlacement[] = [
+  { u: 0.5585, offset: -3.0, yaw: 0.3 },
+  { u: 0.5478, offset: -2.52, yaw: -0.4 },
+  { u: 0.5452, offset: -3.92, yaw: 0.1 },
+  { u: 0.5335, offset: -3.95, yaw: -0.2 },
+];
+/** A small stack of branded product cases beside the display crate. */
+export const BRANDED_CASES: ApronPlacement = { u: 0.5508, offset: -2.08, yaw: 0.2 };
+
+/** Potted plants dressing the stall (the front row along the road is in stage3Geometry). */
 export const STALL_POTS: ApronPlacement[] = [
   { u: 0.525, offset: -2.7 },
-  { u: 0.549, offset: -2.3 },
-  { u: 0.557, offset: -2.7 },
-  { u: 0.532, offset: -4.25 },
+  { u: 0.545, offset: -2.3 },
+  { u: 0.557, offset: -2.75 },
+  { u: 0.5315, offset: -4.3 },
+  { u: 0.5335, offset: -2.8 },
+  { u: 0.5485, offset: -2.8 },
 ];
+/** The front row of potted plants along the road edge of the apron. */
+export const FRONT_POTS = { uFrom: 0.521, uTo: 0.556, offset: -1.32, count: 13 };
 
 /** A hand truck (sack trolley) of cartons being wheeled from the truck. */
 export const HAND_TRUCK: ApronPlacement = { u: 0.5635, offset: -1.25, yaw: 2.4 };
@@ -126,6 +149,15 @@ export interface Stage3Figure extends ApronPlacement {
 const RED = "#c8161d";
 const CREAM = "#efe6d4";
 
+/** The team member on the parked truck's tail lift (placed by ParkedTruck). */
+export const TAIL_LIFT_FIGURE: Omit<FigureSpec, "x" | "z" | "yaw"> = {
+  pose: "carton",
+  shirt: RED,
+  hat: "cap",
+  hatColor: RED,
+  trousers: "#3f3a36",
+};
+
 export const STAGE3_FIGURES: Stage3Figure[] = [
   // At the truck's open doors, lifting a carton down.
   { u: 0.5652, offset: -1.66, yaw: Math.PI, pose: "carton", shirt: RED, hat: "cap", hatColor: RED, trousers: "#3f3a36" },
@@ -135,7 +167,7 @@ export const STAGE3_FIGURES: Stage3Figure[] = [
   // Stocking the shelves under the canopy.
   { u: 0.543, offset: -3.55, yaw: Math.PI, pose: "inspect", shirt: CREAM, hat: "none", trousers: "#4b4440" },
   // Arranging the sampling counter.
-  { u: 0.538, offset: -2.42, yaw: 0, pose: "present", shirt: RED, hat: "none", trousers: "#3f3a36" },
+  { u: 0.5395, offset: -3.1, yaw: 0, pose: "present", shirt: RED, hat: "none", trousers: "#3f3a36" },
 ];
 
 /** Village homes behind the activation (world x/z, facing yaw, size, wall colour). */

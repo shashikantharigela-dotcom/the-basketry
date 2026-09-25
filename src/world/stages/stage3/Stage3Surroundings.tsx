@@ -8,7 +8,7 @@ import { TreeBatchMeshes } from "../common/TreeBatchMeshes";
 import { TropicalMeshes } from "../common/TropicalMeshes";
 import { addTree, createTreeBatches } from "../common/treeKit";
 import { addBanana, addBougainvillea, addFloweringShrub, addPalm, createTropicalBatches } from "../common/tropicalKit";
-import { APRON_EDGE_PLANTING, APRON_GEOMETRY, PULL_OFF_GEOMETRY, STAGE3_FENCES, STAGE3_MARKER_POSTS } from "./stage3Geometry";
+import { APRON_EDGE_PLANTING, CAMERA_VERGE_PLANTING, APRON_GEOMETRY, PULL_OFF_GEOMETRY, STAGE3_FENCES, STAGE3_MARKER_POSTS } from "./stage3Geometry";
 import { HOMES, STAGE3_BOUNDS, STAGE3_KEEP_OUT, STAGE3_PLANTS } from "./stage3Layout";
 
 const APRON = new THREE.MeshStandardMaterial({
@@ -175,6 +175,14 @@ export function Stage3Surroundings() {
       if (i % 3 === 1) addBougainvillea(jx, jz, 0.9 + random() * 0.25, random, tropicalBatches);
       else if (i % 5 === 3) addBanana(jx, jz, 0.85 + random() * 0.2, random, tropicalBatches);
       else addFloweringShrub(jx, jz, 1.0 + random() * 0.35, random, tropicalBatches, BLOOMS);
+    });
+
+    CAMERA_VERGE_PLANTING.forEach(([x, z], i) => {
+      const jx = x + (random() - 0.5) * 0.4;
+      const jz = z + (random() - 0.5) * 0.4;
+      if (random() < 0.2) return;
+      if (i % 4 === 1) addBougainvillea(jx, jz, 0.75 + random() * 0.2, random, tropicalBatches);
+      else addFloweringShrub(jx, jz, 0.9 + random() * 0.4, random, tropicalBatches, BLOOMS);
     });
 
     // Lush low planting across the stretch — clustered, never a carpet.

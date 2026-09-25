@@ -3,15 +3,18 @@ import * as THREE from "three";
 import { BasketEmblem } from "../common/BasketEmblem";
 import { InstancedBatch } from "../common/InstancedBatch";
 import { createRandom, instanceMatrix } from "../common/placement";
-import { apronY, BUNTING_POLE_POSITIONS, resolvePlacement } from "./stage3Geometry";
+import { apronY, BUNTING_POLE_POSITIONS, FRONT_POT_POSITIONS, resolvePlacement } from "./stage3Geometry";
 import {
   A_FRAME,
   BANNERS,
+  BASKET_TABLE,
+  BRANDED_CASES,
   CANOPY,
   CARTON_STACKS,
-  COUNTER,
+  DISPLAY_CRATE,
+  OPEN_CARTONS,
   PARASOLS,
-  SHELVES,
+  PRODUCT_TABLE,
   SIDE_TABLE,
   STALL_POTS,
   type ApronPlacement,
@@ -31,9 +34,18 @@ const TERRACOTTA = new THREE.MeshStandardMaterial({ color: "#b8603f", roughness:
 const LEAF = new THREE.MeshStandardMaterial({ color: "#5d8c3e", roughness: 0.8, metalness: 0 });
 const PENNANT = new THREE.MeshStandardMaterial({ color: "#ffffff", roughness: 0.7, metalness: 0, side: THREE.DoubleSide });
 const STRING = new THREE.MeshStandardMaterial({ color: "#e9e1d0", roughness: 0.8, metalness: 0 });
+const WICKER = new THREE.MeshStandardMaterial({ color: "#c49a5c", roughness: 0.9, metalness: 0 });
+const PRODUCE = new THREE.MeshStandardMaterial({ color: "#ffffff", roughness: 0.65, metalness: 0 });
+const MAT = new THREE.MeshStandardMaterial({ color: "#efe7d6", roughness: 0.95, metalness: 0 });
 
 const BOX = new THREE.BoxGeometry(1, 1, 1);
 const JAR = new THREE.CylinderGeometry(1, 1, 1, 12);
+const BASKET = new THREE.CylinderGeometry(1, 0.78, 1, 14);
+const PRODUCE_GEOMETRY = new THREE.IcosahedronGeometry(1, 0);
+const POT = new THREE.CylinderGeometry(1, 0.76, 1, 12);
+const LEAF_BALL = new THREE.IcosahedronGeometry(1, 1);
+const LEAF_GREENS = [new THREE.Color("#5d8c3e"), new THREE.Color("#4f7d34"), new THREE.Color("#6f9a45")];
+const BLOOM = new THREE.Color("#d8457a");
 const PENNANT_GEOMETRY = (() => {
   const g = new THREE.BufferGeometry();
   g.setAttribute("position", new THREE.Float32BufferAttribute([-0.5, 0, 0, 0.5, 0, 0, 0, -1, 0], 3));
@@ -51,6 +63,14 @@ const PRODUCT_COLORS = [
   new THREE.Color("#9aa64f"),
   new THREE.Color("#b1462b"),
 ];
+// Loose produce in the baskets: mangoes, chillies, onions, turmeric, rice.
+const PRODUCE_COLORS = [
+  new THREE.Color("#f0a92e"),
+  new THREE.Color("#c3261c"),
+  new THREE.Color("#8f3f5c"),
+  new THREE.Color("#e2a126"),
+  new THREE.Color("#efe6cf"),
+];
 const PENNANT_COLORS = [new THREE.Color("#d0161e"), new THREE.Color("#f6f2ea"), new THREE.Color("#e8892b")];
 
 /** A placement resolved onto the apron, as a group transform. */
@@ -63,116 +83,371 @@ function At({ place, children }: { place: ApronPlacement; children: React.ReactN
   );
 }
 
-/** Red pop-up canopy: four slim legs, a pyramid roof and a scalloped valance. */
+/** Red pop-up canopy (wider than deep, like a market gazebo), with its
+ * display shelves along the back and the sampling counter at the front,
+ * over a light floor mat. Local frame: +z faces the road, x runs along it. */
+const CANOPY_W = 1.5;
+const CANOPY_D = 1.0;
+const CANOPY_LEG = 0.52;
+const CANOPY_ROOF = 0.22;
+
 function Canopy() {
-  const size = 0.95;
-  const legH = 0.5;
-  const roofH = 0.2;
   const roof = useMemo(() => {
-    const g = new THREE.ConeGeometry(size * 0.72, roofH, 4, 1, true);
+    // A unit square pyramid, stretched to the canopy's footprint.
+    const g = new THREE.ConeGeometry(Math.SQRT1_2, 1, 4, 1, true);
     g.rotateY(Math.PI / 4);
+    g.scale(CANOPY_W + 0.04, CANOPY_ROOF, CANOPY_D + 0.04);
     return g;
   }, []);
+  const eave = CANOPY_LEG;
   return (
     <At place={CANOPY}>
+      <mesh material={MAT} position={[0, 0.003, 0]} receiveShadow>
+        <boxGeometry args={[CANOPY_W - 0.04, 0.004, CANOPY_D - 0.04]} />
+      </mesh>
+      <mesh material={RED} position={[0, 0.0055, 0]} receiveShadow>
+        <boxGeometry args={[CANOPY_W - 0.12, 0.002, CANOPY_D - 0.12]} />
+      </mesh>
       {[-1, 1].flatMap((sx) =>
         [-1, 1].map((sz) => (
-          <mesh key={`${sx}${sz}`} material={FRAME} position={[(sx * size) / 2, legH / 2, (sz * size) / 2]} castShadow>
-            <boxGeometry args={[0.022, legH, 0.022]} />
+          <mesh key={`${sx}${sz}`} material={FRAME} position={[(sx * CANOPY_W) / 2, eave / 2, (sz * CANOPY_D) / 2]} castShadow>
+            <boxGeometry args={[0.024, eave, 0.024]} />
           </mesh>
         ))
       )}
-      <mesh geometry={roof} material={RED} position={[0, legH + roofH / 2 + 0.02, 0]} castShadow receiveShadow />
+      <mesh geometry={roof} material={RED} position={[0, eave + CANOPY_ROOF / 2 + 0.02, 0]} castShadow receiveShadow />
       {/* Valance: red panels round the eave, white piping. */}
-      {[0, 1, 2, 3].map((k) => (
-        <group key={k} rotation={[0, (k * Math.PI) / 2, 0]}>
-          <mesh material={RED_DARK} position={[0, legH - 0.015, size / 2 + 0.005]} castShadow>
-            <boxGeometry args={[size + 0.02, 0.07, 0.008]} />
-          </mesh>
-          <mesh material={WHITE} position={[0, legH - 0.052, size / 2 + 0.006]}>
-            <boxGeometry args={[size + 0.02, 0.008, 0.009]} />
-          </mesh>
-        </group>
+      {[0, 1, 2, 3].map((k) => {
+        const span = k % 2 === 0 ? CANOPY_W : CANOPY_D;
+        const reach = k % 2 === 0 ? CANOPY_D : CANOPY_W;
+        return (
+          <group key={k} rotation={[0, (k * Math.PI) / 2, 0]}>
+            <mesh material={RED_DARK} position={[0, eave - 0.02, reach / 2 + 0.01]} castShadow>
+              <boxGeometry args={[span + 0.04, 0.085, 0.008]} />
+            </mesh>
+            <mesh material={WHITE} position={[0, eave - 0.064, reach / 2 + 0.011]}>
+              <boxGeometry args={[span + 0.04, 0.009, 0.009]} />
+            </mesh>
+          </group>
+        );
+      })}
+      <BasketEmblem position={[0, eave + CANOPY_ROOF + 0.07, 0]} scale={0.055} />
+      {/* Emblems on the front valance. */}
+      {[-0.45, 0, 0.45].map((x) => (
+        <BasketEmblem key={x} position={[x, eave - 0.018, CANOPY_D / 2 + 0.035]} rotation={[Math.PI / 2, 0, 0]} scale={0.026} />
       ))}
-      <BasketEmblem position={[0, legH + roofH + 0.06, 0]} scale={0.045} />
-      {/* Emblem on the front valance. */}
-      <BasketEmblem position={[0, legH - 0.012, size / 2 + 0.03]} rotation={[Math.PI / 2, 0, 0]} scale={0.022} />
+      {/* A red back wall behind the shelves. */}
+      <mesh material={RED_DARK} position={[0, eave / 2 + 0.02, -CANOPY_D / 2 + 0.01]} receiveShadow>
+        <boxGeometry args={[CANOPY_W - 0.04, eave - 0.04, 0.008]} />
+      </mesh>
+      <BasketEmblem position={[0, eave * 0.78, -CANOPY_D / 2 + 0.03]} rotation={[Math.PI / 2, 0, 0]} scale={0.05} />
+      {[-0.5, 0, 0.5].map((x, i) => (
+        <Shelf key={x} x={x} z={-CANOPY_D / 2 + 0.1} seed={3320 + i} fill={i === 2 ? 0.55 : 1} />
+      ))}
+      <Counter z={CANOPY_D / 2 - 0.1} />
     </At>
   );
 }
 
-/** A slatted display shelf unit, part-stocked with jars and boxed products. */
-function Shelf({ place, seed }: { place: ApronPlacement; seed: number }) {
+/** A slatted display shelf unit (canopy frame), stocked with jars and boxed
+ * products; `fill` < 1 leaves the top shelves still being stocked. */
+const SHELF_LEVELS = [0.08, 0.19, 0.3, 0.41];
+
+function Shelf({ x, z, seed, fill }: { x: number; z: number; seed: number; fill: number }) {
   const items = useMemo(() => {
     const random = createRandom(seed);
     const jars: THREE.Matrix4[] = [];
     const jarColors: THREE.Color[] = [];
     const boxes: THREE.Matrix4[] = [];
     const boxColors: THREE.Color[] = [];
-    for (const [level, y] of [0.12, 0.25, 0.38].entries()) {
-      // The top shelf is still being filled.
-      const count = level === 2 ? 3 : 6;
+    SHELF_LEVELS.forEach((y, level) => {
+      const full = level / SHELF_LEVELS.length < fill;
+      const count = full ? 7 : 2;
       for (let i = 0; i < count; i++) {
-        const x = -0.14 + i * 0.056;
-        if (random() < 0.55) {
-          jars.push(instanceMatrix(x, y + 0.028, 0, 0, 0.019, 0.055, 0.019));
-          jarColors.push(PRODUCT_COLORS[Math.floor(random() * PRODUCT_COLORS.length)]);
+        const lx = -0.165 + i * 0.055;
+        const color = PRODUCT_COLORS[Math.floor(random() * PRODUCT_COLORS.length)];
+        if (level % 2 === 0 ? random() < 0.7 : random() < 0.3) {
+          jars.push(instanceMatrix(lx, y + 0.029, 0, 0, 0.019, 0.052, 0.019));
+          jarColors.push(color);
         } else {
-          boxes.push(instanceMatrix(x, y + 0.03, 0, 0, 0.042, 0.06, 0.03));
-          boxColors.push(PRODUCT_COLORS[Math.floor(random() * PRODUCT_COLORS.length)]);
+          boxes.push(instanceMatrix(lx, y + 0.032, 0, 0, 0.042, 0.058, 0.032));
+          boxColors.push(color);
         }
       }
-    }
+    });
     return { jars, jarColors, boxes, boxColors };
-  }, [seed]);
+  }, [seed, fill]);
   return (
-    <At place={place}>
-      {[-0.17, 0.17].map((x) => (
-        <mesh key={x} material={WOOD_DARK} position={[x, 0.22, 0]} castShadow>
-          <boxGeometry args={[0.02, 0.44, 0.1]} />
+    <group position={[x, 0, z]}>
+      {[-0.2, 0.2].map((sx) => (
+        <mesh key={sx} material={WOOD_DARK} position={[sx, 0.235, 0]} castShadow>
+          <boxGeometry args={[0.02, 0.47, 0.11]} />
         </mesh>
       ))}
-      {[0.12, 0.25, 0.38].map((y) => (
+      {SHELF_LEVELS.map((y) => (
         <mesh key={y} material={WOOD} position={[0, y, 0]} castShadow receiveShadow>
-          <boxGeometry args={[0.34, 0.012, 0.1]} />
+          <boxGeometry args={[0.4, 0.012, 0.11]} />
         </mesh>
       ))}
       <InstancedBatch geometry={JAR} material={PRODUCT} matrices={items.jars} colors={items.jarColors} />
       <InstancedBatch geometry={BOX} material={PRODUCT} matrices={items.boxes} colors={items.boxColors} />
+    </group>
+  );
+}
+
+/** The sampling / demo counter: white top, brand-red front with emblems,
+ * sample jars and product boxes, and a tasting tray. */
+function Counter({ z }: { z: number }) {
+  const items = useMemo(() => {
+    const random = createRandom(3331);
+    const jars: THREE.Matrix4[] = [];
+    const jarColors: THREE.Color[] = [];
+    for (let i = 0; i < 12; i++) {
+      const lx = -0.56 + i * 0.1 + (random() - 0.5) * 0.02;
+      if (Math.abs(lx) < 0.12) continue; // the tasting tray
+      const tall = random() < 0.5;
+      jars.push(instanceMatrix(lx, 0.214 + (tall ? 0.03 : 0.022), -0.03 + (random() - 0.5) * 0.03, 0, 0.02, tall ? 0.06 : 0.044, 0.02));
+      jarColors.push(PRODUCT_COLORS[Math.floor(random() * PRODUCT_COLORS.length)]);
+    }
+    return { jars, jarColors };
+  }, []);
+  return (
+    <group position={[0, 0, z]}>
+      <mesh material={RED} position={[0, 0.1, 0]} castShadow receiveShadow>
+        <boxGeometry args={[1.26, 0.2, 0.18]} />
+      </mesh>
+      <mesh material={WHITE} position={[0, 0.205, 0]} castShadow receiveShadow>
+        <boxGeometry args={[1.3, 0.012, 0.21]} />
+      </mesh>
+      <mesh material={WHITE} position={[0, 0.03, 0.091]}>
+        <boxGeometry args={[1.24, 0.025, 0.002]} />
+      </mesh>
+      {[-0.4, 0, 0.4].map((x) => (
+        <BasketEmblem key={x} position={[x, 0.12, 0.1]} rotation={[Math.PI / 2, 0, 0]} scale={0.032} />
+      ))}
+      <InstancedBatch geometry={JAR} material={PRODUCT} matrices={items.jars} colors={items.jarColors} />
+      <mesh material={WOOD} position={[0, 0.216, 0.02]} castShadow>
+        <cylinderGeometry args={[0.08, 0.08, 0.008, 20]} />
+      </mesh>
+      {[-0.035, 0, 0.035, -0.015, 0.02].map((x, i) => (
+        <mesh key={i} position={[x, 0.226, 0.02 + (i > 2 ? 0.03 : -0.01)]} scale={0.013} castShadow>
+          <sphereGeometry args={[1, 8, 6]} />
+          <meshStandardMaterial color={i % 2 ? "#c9572c" : "#e3b04b"} roughness={0.5} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+/** A low wooden table of woven baskets heaped with produce (THE BASKETRY's
+ * own motif), under a parasol. */
+function BasketTable() {
+  const built = useMemo(() => {
+    const random = createRandom(3341);
+    const baskets: THREE.Matrix4[] = [];
+    const produce: THREE.Matrix4[] = [];
+    const colors: THREE.Color[] = [];
+    const spots: Array<[number, number]> = [
+      [-0.19, -0.05],
+      [0, -0.06],
+      [0.19, -0.05],
+      [-0.1, 0.08],
+      [0.1, 0.08],
+    ];
+    spots.forEach(([bx, bz], i) => {
+      const r = 0.07;
+      baskets.push(instanceMatrix(bx, 0.19, bz, 0, r, 0.05, r));
+      const color = PRODUCE_COLORS[i % PRODUCE_COLORS.length];
+      for (let k = 0; k < 7; k++) {
+        const a = random() * Math.PI * 2;
+        const d = random() * r * 0.65;
+        produce.push(instanceMatrix(bx + Math.cos(a) * d, 0.218 + random() * 0.012, bz + Math.sin(a) * d, 0, 0.022, 0.018, 0.022));
+        colors.push(color);
+      }
+    });
+    return { baskets, produce, colors };
+  }, []);
+  return (
+    <At place={BASKET_TABLE}>
+      <mesh material={WOOD} position={[0, 0.16, 0]} castShadow receiveShadow>
+        <boxGeometry args={[0.62, 0.02, 0.34]} />
+      </mesh>
+      {[-1, 1].flatMap((sx) =>
+        [-1, 1].map((sz) => (
+          <mesh key={`${sx}${sz}`} material={WOOD_DARK} position={[sx * 0.28, 0.075, sz * 0.14]} castShadow>
+            <boxGeometry args={[0.02, 0.15, 0.02]} />
+          </mesh>
+        ))
+      )}
+      <InstancedBatch geometry={BASKET} material={WICKER} matrices={built.baskets} />
+      <InstancedBatch geometry={PRODUCE_GEOMETRY} material={PRODUCE} matrices={built.produce} colors={built.colors} />
+      {/* A basket and a sack of grain on the ground beside the table. */}
+      <mesh geometry={BASKET} material={WICKER} position={[0.38, 0.035, 0.1]} scale={[0.08, 0.07, 0.08]} castShadow />
+      <mesh material={MAT} position={[-0.38, 0.06, 0.08]} scale={[0.07, 0.06, 0.055]} castShadow>
+        <sphereGeometry args={[1, 10, 8]} />
+      </mesh>
     </At>
   );
 }
 
-/** The sampling / demo counter: white top, brand-red front with the emblem,
- * a few sample jars and a small tasting tray. */
-function Counter() {
+/** A white display table of packed products under the second parasol. */
+function ProductTable() {
+  const built = useMemo(() => {
+    const random = createRandom(3351);
+    const boxes: THREE.Matrix4[] = [];
+    const colors: THREE.Color[] = [];
+    for (let row = 0; row < 2; row++) {
+      for (let i = 0; i < 8; i++) {
+        const lx = -0.245 + i * 0.07;
+        const tall = (i + row) % 3 === 0;
+        boxes.push(instanceMatrix(lx, 0.185 + (tall ? 0.04 : 0.03), -0.06 + row * 0.12, 0, 0.048, tall ? 0.08 : 0.06, 0.036));
+        colors.push(PRODUCT_COLORS[Math.floor(random() * PRODUCT_COLORS.length)]);
+      }
+    }
+    return { boxes, colors };
+  }, []);
   return (
-    <At place={COUNTER}>
-      <mesh material={RED} position={[0, 0.1, 0]} castShadow receiveShadow>
-        <boxGeometry args={[0.62, 0.2, 0.18]} />
+    <At place={PRODUCT_TABLE}>
+      <mesh material={WHITE} position={[0, 0.17, 0]} castShadow receiveShadow>
+        <boxGeometry args={[0.62, 0.02, 0.32]} />
       </mesh>
-      <mesh material={WHITE} position={[0, 0.205, 0]} castShadow receiveShadow>
-        <boxGeometry args={[0.66, 0.012, 0.21]} />
+      <mesh material={RED} position={[0, 0.12, 0.161]}>
+        <boxGeometry args={[0.62, 0.08, 0.004]} />
       </mesh>
-      <mesh material={WHITE} position={[0, 0.1, 0.091]}>
-        <boxGeometry args={[0.6, 0.03, 0.002]} />
-      </mesh>
-      <BasketEmblem position={[0, 0.13, 0.1]} rotation={[Math.PI / 2, 0, 0]} scale={0.03} />
-      {[-0.22, -0.15, 0.16, 0.23].map((x, i) => (
-        <mesh key={x} geometry={JAR} position={[x, 0.24, -0.02]} scale={[0.02, 0.055, 0.02]} castShadow>
-          <meshStandardMaterial color={PRODUCT_COLORS[i].getStyle()} roughness={0.4} />
+      <BasketEmblem position={[0, 0.12, 0.166]} rotation={[Math.PI / 2, 0, 0]} scale={0.026} />
+      {[-0.28, 0.28].map((x) => (
+        <mesh key={x} material={FRAME} position={[x, 0.08, 0]} castShadow>
+          <boxGeometry args={[0.018, 0.16, 0.28]} />
         </mesh>
       ))}
-      <mesh material={WOOD} position={[0, 0.216, 0.02]} castShadow>
-        <cylinderGeometry args={[0.07, 0.07, 0.008, 20]} />
+      <InstancedBatch geometry={BOX} material={PRODUCT} matrices={built.boxes} colors={built.colors} />
+    </At>
+  );
+}
+
+/** A big white branded display crate on a pallet, products on top. */
+function DisplayCrate() {
+  return (
+    <At place={DISPLAY_CRATE}>
+      <mesh material={WOOD} position={[0, 0.02, 0]} castShadow receiveShadow>
+        <boxGeometry args={[0.36, 0.04, 0.3]} />
       </mesh>
-      {[-0.03, 0, 0.03].map((x) => (
-        <mesh key={x} position={[x, 0.225, 0.02]} scale={0.012} castShadow>
-          <sphereGeometry args={[1, 8, 6]} />
-          <meshStandardMaterial color="#e3b04b" roughness={0.5} />
+      <mesh material={WHITE} position={[0, 0.16, 0]} castShadow receiveShadow>
+        <boxGeometry args={[0.3, 0.24, 0.26]} />
+      </mesh>
+      <mesh material={RED} position={[0, 0.275, 0]}>
+        <boxGeometry args={[0.302, 0.012, 0.262]} />
+      </mesh>
+      <BasketEmblem position={[0, 0.17, 0.132]} rotation={[Math.PI / 2, 0, 0]} scale={0.05} />
+      <BasketEmblem position={[0.152, 0.17, 0]} rotation={[Math.PI / 2, 0, -Math.PI / 2]} scale={0.045} />
+      {[-0.08, 0, 0.08].map((x, i) => (
+        <mesh key={x} geometry={BOX} position={[x, 0.315, 0]} scale={[0.05, 0.07, 0.04]} castShadow>
+          <meshStandardMaterial color={PRODUCT_COLORS[i].getStyle()} roughness={0.5} />
         </mesh>
       ))}
     </At>
+  );
+}
+
+/** Cartons opened for unpacking: flaps folded out, products showing on top,
+ * a few set out on the ground beside them. */
+function OpenCartons() {
+  const built = useMemo(() => {
+    const random = createRandom(3371);
+    const cartons: THREE.Matrix4[] = [];
+    const cartonColors: THREE.Color[] = [];
+    const flaps: THREE.Matrix4[] = [];
+    const items: THREE.Matrix4[] = [];
+    const itemColors: THREE.Color[] = [];
+    const place = (x: number, z: number, yaw: number, lx: number, lz: number) => {
+      const c = Math.cos(yaw);
+      const s = Math.sin(yaw);
+      return [x + lx * c + lz * s, z - lx * s + lz * c] as const;
+    };
+    for (const spot of OPEN_CARTONS) {
+      const { x, z, yaw } = resolvePlacement(spot);
+      const y = apronY(x, z);
+      const color = CARTON_COLORS[Math.floor(random() * CARTON_COLORS.length)];
+      cartons.push(instanceMatrix(x, y + 0.04, z, yaw, 0.1, 0.08, 0.09));
+      cartonColors.push(color);
+      // Four flaps folded out and down from the open top.
+      for (const [lx, lz, w, d] of [
+        [0.07, 0, 0.04, 0.09],
+        [-0.07, 0, 0.04, 0.09],
+        [0, 0.065, 0.1, 0.04],
+        [0, -0.065, 0.1, 0.04],
+      ] as const) {
+        const [fx, fz] = place(x, z, yaw, lx, lz);
+        flaps.push(instanceMatrix(fx, y + 0.078, fz, yaw, w, 0.004, d));
+        cartonColors.push(color);
+      }
+      // Product tops inside, and a few set out beside the carton.
+      for (let k = 0; k < 4; k++) {
+        const [ix, iz] = place(x, z, yaw, (k % 2 ? 1 : -1) * 0.024, (k < 2 ? 1 : -1) * 0.022);
+        items.push(instanceMatrix(ix, y + 0.085, iz, yaw, 0.04, 0.02, 0.036));
+        itemColors.push(PRODUCT_COLORS[Math.floor(random() * PRODUCT_COLORS.length)]);
+      }
+      for (let k = 0; k < 3; k++) {
+        const [ix, iz] = place(x, z, yaw, -0.03 + k * 0.045, 0.1);
+        items.push(instanceMatrix(ix, y + 0.03, iz, yaw + (random() - 0.5) * 0.3, 0.036, 0.06, 0.028));
+        itemColors.push(PRODUCT_COLORS[Math.floor(random() * PRODUCT_COLORS.length)]);
+      }
+    }
+    return { boxes: [...cartons, ...flaps], cartonColors, items, itemColors };
+  }, []);
+  return (
+    <group>
+      <InstancedBatch geometry={BOX} material={CARTON} matrices={built.boxes} colors={built.cartonColors} />
+      <InstancedBatch geometry={BOX} material={PRODUCT} matrices={built.items} colors={built.itemColors} />
+    </group>
+  );
+}
+
+/** Branded product cases (white, red band) stacked beside the display crate. */
+function BrandedCases() {
+  const cases: Array<[number, number, number, number]> = [
+    [-0.055, 0.035, 0, 0.05],
+    [0.055, 0.035, 0.02, -0.08],
+    [0, 0.105, 0.01, 0.12],
+    [0.13, 0.035, -0.05, 0.3],
+  ];
+  return (
+    <At place={BRANDED_CASES}>
+      {cases.map(([x, y, z, r], i) => (
+        <group key={i} position={[x, y, z]} rotation={[0, r, 0]}>
+          <mesh material={WHITE} castShadow receiveShadow>
+            <boxGeometry args={[0.1, 0.07, 0.08]} />
+          </mesh>
+          <mesh material={RED}>
+            <boxGeometry args={[0.102, 0.018, 0.082]} />
+          </mesh>
+        </group>
+      ))}
+    </At>
+  );
+}
+
+/** A row of potted plants along the road edge of the apron. */
+function FrontPots() {
+  const built = useMemo(() => {
+    const random = createRandom(3361);
+    const pots: THREE.Matrix4[] = [];
+    const leaves: THREE.Matrix4[] = [];
+    const leafColors: THREE.Color[] = [];
+    for (const [x, z] of FRONT_POT_POSITIONS) {
+      const y = apronY(x, z);
+      const s = 0.9 + random() * 0.35;
+      pots.push(instanceMatrix(x, y + 0.04 * s, z, 0, 0.05 * s, 0.08 * s, 0.05 * s));
+      leaves.push(instanceMatrix(x, y + 0.115 * s, z, random() * 6, 0.07 * s, 0.065 * s, 0.07 * s));
+      leafColors.push(random() < 0.3 ? BLOOM : LEAF_GREENS[Math.floor(random() * LEAF_GREENS.length)]);
+    }
+    return { pots, leaves, leafColors };
+  }, []);
+  return (
+    <group>
+      <InstancedBatch geometry={POT} material={TERRACOTTA} matrices={built.pots} />
+      <InstancedBatch geometry={LEAF_BALL} material={PRODUCE} matrices={built.leaves} colors={built.leafColors} />
+    </group>
   );
 }
 
@@ -365,10 +640,12 @@ export function ActivationStall() {
   return (
     <group>
       <Canopy />
-      {SHELVES.map((shelf, i) => (
-        <Shelf key={i} place={shelf} seed={3320 + i} />
-      ))}
-      <Counter />
+      <BasketTable />
+      <ProductTable />
+      <DisplayCrate />
+      <OpenCartons />
+      <BrandedCases />
+      <FrontPots />
       <SideTable />
       {PARASOLS.map((parasol, i) => (
         <Parasol key={i} place={parasol} />

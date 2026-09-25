@@ -1,10 +1,12 @@
 import { useMemo } from "react";
 import * as THREE from "three";
 import { Truck } from "../../../scenes/Truck";
+import { Figures } from "../common/Figures";
+import type { FigureSpec } from "../common/Figures";
 import { InstancedBatch } from "../common/InstancedBatch";
 import { createRandom, instanceMatrix } from "../common/placement";
 import { apronY, PARKED_TRUCK_POSE, resolvePlacement } from "./stage3Geometry";
-import { HAND_TRUCK } from "./stage3Layout";
+import { HAND_TRUCK, TAIL_LIFT_FIGURE } from "./stage3Layout";
 
 /**
  * The SECOND THE BASKETRY truck, parked in the pull-off and being unloaded.
@@ -108,12 +110,9 @@ function CargoOpening() {
       <mesh material={STEEL} position={[0, FLOOR_Y - 0.02, REAR_Z - 0.09]} castShadow receiveShadow>
         <boxGeometry args={[HALF_WIDTH * 2 - 0.02, 0.012, 0.18]} />
       </mesh>
-      {/* Two cartons set down on the plate, ready to go. */}
-      <mesh geometry={BOX} position={[-0.09, FLOOR_Y + 0.03, REAR_Z - 0.1]} scale={[0.14, 0.09, 0.1]} castShadow>
+      {/* A carton set down on the plate, beside the worker handing stock down. */}
+      <mesh geometry={BOX} position={[-0.14, FLOOR_Y + 0.03, REAR_Z - 0.1]} rotation={[0, 0.15, 0]} scale={[0.13, 0.09, 0.1]} castShadow>
         <meshStandardMaterial color="#c79b62" roughness={0.85} />
-      </mesh>
-      <mesh geometry={BOX} position={[0.1, FLOOR_Y + 0.03, REAR_Z - 0.08]} rotation={[0, 0.2, 0]} scale={[0.14, 0.09, 0.1]} castShadow>
-        <meshStandardMaterial color="#bf9258" roughness={0.85} />
       </mesh>
     </group>
   );
@@ -156,6 +155,15 @@ const TRUCK_QUATERNION = (() => {
   return helper.quaternion.clone();
 })();
 
+/** Standing on the tail-lift plate at cargo-floor height, facing out of the truck. */
+const TAIL_LIFT_TEAM: FigureSpec[] = (() => {
+  const { position, tangent } = PARKED_TRUCK_POSE;
+  const right = new THREE.Vector3(-tangent.z, 0, tangent.x);
+  const spot = position.clone().addScaledVector(tangent, REAR_Z - 0.11).addScaledVector(right, 0.08);
+  return [{ ...TAIL_LIFT_FIGURE, x: spot.x, z: spot.z, yaw: Math.atan2(-tangent.x, -tangent.z) }];
+})();
+const TAIL_LIFT_TOP = PARKED_TRUCK_POSE.position.y + FLOOR_Y - 0.014;
+
 export function ParkedTruck() {
   return (
     <group>
@@ -166,6 +174,7 @@ export function ParkedTruck() {
         <CargoOpening />
       </group>
       <HandTruck />
+      <Figures figures={TAIL_LIFT_TEAM} surfaceY={() => TAIL_LIFT_TOP} />
     </group>
   );
 }
