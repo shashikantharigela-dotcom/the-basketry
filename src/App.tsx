@@ -4,6 +4,8 @@ import { UIOverlay } from "./ui/UIOverlay";
 import { Logo } from "./components/Logo";
 import { usePrefersReducedMotion } from "./hooks/usePrefersReducedMotion";
 import { SCENE_MODE } from "./world/foundation/sceneMode";
+import { StoryPanel } from "./ui/StoryPanel";
+import { STAGE3_COPY } from "./ui/storyCopy";
 
 function App() {
   usePrefersReducedMotion();
@@ -40,6 +42,8 @@ function App() {
         {/* The legacy ten-beat copy belongs to the legacy scene; the
             foundation world has no story content yet. */}
         {SCENE_MODE === "legacy" && <UIOverlay />}
+        {/* Stage 3 story text (3D left, text right). Stages 1–2 stay text-free for now. */}
+        {SCENE_MODE === "foundation" && <StoryPanel copy={STAGE3_COPY} />}
       </NarrativeController>
     </div>
   );

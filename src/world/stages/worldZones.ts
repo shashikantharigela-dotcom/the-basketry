@@ -1,6 +1,7 @@
 import type { Rect } from "./common/types";
 import { SCATTER_BOUNDS, SCATTER_KEEP_OUT, STAGE1_PADS } from "./stage1/stage1Layout";
 import { STAGE2_BOUNDS, STAGE2_KEEP_OUT, STAGE2_PADS, STAGE2_ZONE } from "./stage2/stage2Layout";
+import { STAGE3_BOUNDS, STAGE3_KEEP_OUT, STAGE3_PADS, STAGE3_ZONE } from "./stage3/stage3Layout";
 
 /**
  * Registry of how each story stage shapes the shared terrain. The
@@ -42,9 +43,9 @@ export interface TerrainZone {
 /** Optional ground tints a stage can lay over the shared natural landscape.
  * Stage 1 uses none. Stage 2 greens its stretch (lush Indian farmland),
  * easing in only after Stage 1's land ends. */
-export const TERRAIN_ZONES: TerrainZone[] = [STAGE2_ZONE];
+export const TERRAIN_ZONES: TerrainZone[] = [STAGE2_ZONE, STAGE3_ZONE];
 
-export const TERRAIN_PADS: TerrainPad[] = [...STAGE1_PADS, ...STAGE2_PADS];
+export const TERRAIN_PADS: TerrainPad[] = [...STAGE1_PADS, ...STAGE2_PADS, ...STAGE3_PADS];
 
 /** Areas the world-wide vegetation never grows into (a stage's fields,
  * yards, lanes and buildings). */
@@ -63,7 +64,7 @@ export const VEGETATION_SPARSE: Array<{ minX: number; maxX: number; minZ: number
  * after it — including around earlier, approved stages. Clearings remove
  * plants inside them; thinning keeps a deterministic fraction per plant.
  */
-export const VEGETATION_CLEARINGS: Rect[] = [...STAGE2_KEEP_OUT];
+export const VEGETATION_CLEARINGS: Rect[] = [...STAGE2_KEEP_OUT, ...STAGE3_KEEP_OUT];
 
 export const VEGETATION_THINNING: Array<{
   minX: number;
@@ -73,4 +74,7 @@ export const VEGETATION_THINNING: Array<{
   factor: number;
   /** Drop the world's poplar columns here (they read as cypresses, not Indian farmland). */
   dropPoplars?: boolean;
-}> = [{ ...STAGE2_BOUNDS, minX: -26, maxX: 26, minZ: -34, factor: 0.85, dropPoplars: true }];
+}> = [
+  { ...STAGE2_BOUNDS, minX: -26, maxX: 26, minZ: -34, factor: 0.85, dropPoplars: true },
+  { ...STAGE3_BOUNDS, minX: -26, maxX: 26, maxZ: -34, factor: 0.85, dropPoplars: true },
+];

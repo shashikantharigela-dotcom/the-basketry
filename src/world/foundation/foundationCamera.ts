@@ -3,11 +3,14 @@ import { getRoadPoint, getRoadRight, getRoadTangent, getRoadTurn, smoothstep, te
 import { STAGE1_FOCUS } from "../stages/stage1/stage1Layout";
 import { STAGE2_FOCUS } from "../stages/stage2/stage2Layout";
 import { TERRACE_TOP } from "../stages/stage2/stage2Geometry";
+import { STAGE3_FOCUS } from "../stages/stage3/stage3Layout";
+import { apronY } from "../stages/stage3/stage3Geometry";
 
 /**
  * Cinematic camera path for the 3D foundation: a pure function of scroll
  * progress that rides along the S-road with the truck. Each story stage
- * gets its own short sequence of shots (Stage 1 ≈ 0–20%, Stage 2 ≈ 25–45%)
+ * gets its own short sequence of shots (Stage 1 ≈ 0–20%, Stage 2 ≈ 25–45%,
+ * Stage 3 ≈ 50–70%)
  * leaning toward that stage's focus point, then the journey continues and
  * lifts into a wide overview at the end. FoundationCameraRig damps toward this every
  * frame — nothing here is smoothed or stateful.
@@ -35,6 +38,10 @@ interface CameraKeyframe {
    * a place beside the road with the truck still in view. Omitted = pure
    * road chase. */
   focus?: Partial<Record<FocusId, number>>;
+  /** Shifts the framing sideways on screen, as a fraction of the screen
+   * width (positive = the scene sits further left). Used where the story
+   * text occupies the right of the screen. Omitted = centred (0). */
+  screenShift?: number;
 }
 
 /** The world points stage-focused shots lean toward. */
@@ -45,6 +52,7 @@ const FOCUS_POINTS = {
     STAGE1_FOCUS.z
   ),
   productApproaches: new THREE.Vector3(STAGE2_FOCUS.x, TERRACE_TOP + STAGE2_FOCUS.height, STAGE2_FOCUS.z),
+  awarenessSetup: new THREE.Vector3(STAGE3_FOCUS.x, apronY(STAGE3_FOCUS.x, STAGE3_FOCUS.z) + STAGE3_FOCUS.height, STAGE3_FOCUS.z),
 };
 type FocusId = keyof typeof FOCUS_POINTS;
 const FOCUS_IDS = Object.keys(FOCUS_POINTS) as FocusId[];
@@ -77,10 +85,22 @@ const KEYFRAMES: CameraKeyframe[] = [
   { at: 0.38, back: -0.8, up: 3.1, side: -4.1, lookAhead: 0, lookUp: 0.24, fov: 21.5, focus: { productApproaches: 0.95 } },
   // Moving on: back behind the truck, rejoining the journey.
   { at: 0.44, back: 5.2, up: 4.0, side: 0.6, lookAhead: 0.02, lookUp: 0.35, fov: 42, focus: { productApproaches: 0.12 } },
-  // Pass alongside in a side profile, keeping distance so the truck stays framed during the swing.
-  { at: 0.48, back: 0.5, up: 3.0, side: 4.6, lookAhead: 0.004, lookUp: 0.35, fov: 42 },
-  // Swing around the side to a front three-quarter view of the cab (negative back = ahead of the truck).
-  { at: 0.6, back: -4.8, up: 2.3, side: 3.2, lookAhead: 0, lookUp: 0.4, fov: 40 },
+  // STAGE 3 — AWARENESS SETUP (≈ 50–70%), after the approved reference:
+  // from the OUTSIDE of the bend (right of travel), the road in the
+  // foreground, the journey truck driving on, and across it the parked
+  // truck being unloaded beside the activation. The story text sits on the
+  // right of the screen here, so the framing shifts the scene to the left.
+  // Approach: lifting out to the right as the village and activation appear.
+  { at: 0.5, back: 6.0, up: 4.6, side: 2.6, lookAhead: 0.04, lookUp: 0.3, fov: 42, focus: { awarenessSetup: 0.3 }, screenShift: 0.08 },
+  // Establishing: high three-quarter across the road — the journey truck
+  // arriving alongside the activation, the parked truck beyond it.
+  { at: 0.565, back: 4.8, up: 5.0, side: 3.8, lookAhead: 0.02, lookUp: 0.2, fov: 40, focus: { awarenessSetup: 0.7 }, screenShift: 0.14 },
+  // Hero: the unloading and the activation being built, the journey truck
+  // passing the parked one on the road in front.
+  { at: 0.605, back: 3.6, up: 4.6, side: 4.0, lookAhead: 0, lookUp: 0.25, fov: 36, focus: { awarenessSetup: 0.74 }, screenShift: 0.2 },
+  // Moving on: back behind the journey truck as the road bends away,
+  // the truck kept left of the story text until it fades.
+  { at: 0.68, back: 5.0, up: 4.4, side: 1.8, lookAhead: 0.03, lookUp: 0.3, fov: 42, focus: { awarenessSetup: 0.08 }, screenShift: 0.12 },
   { at: 0.82, back: 8.5, up: 5.0, side: 2.0, lookAhead: 0.035, lookUp: 0.3, fov: 42 },
   // Lift into a wide overview of the miniature world.
   { at: 1.0, back: 16, up: 14, side: 5.0, lookAhead: 0.02, lookUp: 0, fov: 38 },
@@ -116,6 +136,7 @@ function interpolate(progress: number): CameraKeyframe {
         if (weight > 0) focus[id] = weight;
       }
       f.focus = focus;
+      f.screenShift = THREE.MathUtils.lerp(a.screenShift ?? 0, b.screenShift ?? 0, t);
       return f;
     }
   }
@@ -128,6 +149,8 @@ export interface FoundationCameraPose {
   /** Roll around the view axis, radians. */
   bank: number;
   fov: number;
+  /** Horizontal framing shift (fraction of screen width; see CameraKeyframe.screenShift). */
+  screenShift?: number;
 }
 
 const truckPoint = new THREE.Vector3();
@@ -176,6 +199,7 @@ export function computeFoundationCameraPose(
 
   out.bank = THREE.MathUtils.clamp(turn * BANK_GAIN, -MAX_BANK, MAX_BANK) * motionScale;
   out.fov = frame.fov;
+  out.screenShift = frame.screenShift ?? 0;
   return out;
 }
 

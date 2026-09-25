@@ -11,6 +11,8 @@ const WOOD = new THREE.MeshStandardMaterial({ color: "#b98a57", roughness: 0.8, 
 const WICKER = new THREE.MeshStandardMaterial({ color: "#c99a5c", roughness: 0.9, metalness: 0 });
 const PRODUCE = new THREE.MeshStandardMaterial({ color: "#d42a1f", roughness: 0.4, metalness: 0 });
 const CLIPBOARD = new THREE.MeshStandardMaterial({ color: "#f4efe4", roughness: 0.6, metalness: 0 });
+const CARTON = new THREE.MeshStandardMaterial({ color: "#c79b62", roughness: 0.85, metalness: 0 });
+const TAPE = new THREE.MeshStandardMaterial({ color: "#c8161d", roughness: 0.6, metalness: 0 });
 
 const shirtMaterials = new Map<string, THREE.MeshStandardMaterial>();
 function shirtMaterial(color: string): THREE.MeshStandardMaterial {
@@ -22,7 +24,7 @@ function shirtMaterial(color: string): THREE.MeshStandardMaterial {
   return material;
 }
 
-export type FigurePose = "carry" | "basket" | "stand" | "inspect" | "present" | "clipboard";
+export type FigurePose = "carry" | "basket" | "stand" | "inspect" | "present" | "clipboard" | "carton";
 
 export interface FigureSpec {
   x: number;
@@ -46,6 +48,7 @@ const ARM_PITCH: Record<FigurePose, [number, number]> = {
   inspect: [-0.95, -0.95],
   present: [0.08, -1.25],
   clipboard: [-0.85, -0.2],
+  carton: [-1.0, -1.0],
 };
 
 export function Figure({
@@ -122,6 +125,17 @@ export function Figure({
               <sphereGeometry args={[0.018, 8, 6]} />
             </mesh>
           ))}
+        </group>
+      )}
+      {pose === "carton" && (
+        // A cardboard product carton held in front, taped across the top.
+        <group position={[0, 0.235, 0.1]}>
+          <mesh material={CARTON} castShadow>
+            <boxGeometry args={[0.11, 0.085, 0.09]} />
+          </mesh>
+          <mesh material={TAPE} position={[0, 0.0435, 0]}>
+            <boxGeometry args={[0.112, 0.003, 0.022]} />
+          </mesh>
         </group>
       )}
       {pose === "inspect" && (
