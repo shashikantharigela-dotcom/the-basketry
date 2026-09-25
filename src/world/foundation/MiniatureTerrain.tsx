@@ -80,7 +80,7 @@ function buildTerrainGeometry(): THREE.BufferGeometry {
       const weight = zoneWeight(zone, z);
       if (weight <= 0) continue;
       zoneSample.copy(low).lerp(high, relief).lerp(vergeColor, verge);
-      sample.lerp(zoneSample, weight * 0.35);
+      sample.lerp(zoneSample, weight * (zone.strength ?? 0.35));
     }
     colors[i * 3] = sample.r;
     colors[i * 3 + 1] = sample.g;

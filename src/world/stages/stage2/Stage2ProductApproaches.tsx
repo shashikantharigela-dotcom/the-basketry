@@ -11,14 +11,16 @@ const terraceSurface = () => TERRACE_TOP;
 /**
  * STAGE 2 — THE BASKETRY APPROACHES PRODUCTS. Product evaluation and discovery.
  *
- * Master visual reference: references/approved/stage2_product_approaches_reference.png
+ * Master visual reference: references/approved/stage2_product_approaches_reference_v2.png
  *
- * A producer's processing facility on a raised, stone-walled terrace inside
- * the road's second bend: a cream hall with a red standing-seam roof, a
- * loading canopy, twin silos and an organised yard of pallets, crates and
- * baskets. At its heart, display tables of product samples where the
- * producer team presents and THE BASKETRY representative evaluates. Around
- * it: crop terraces, an orange orchard, cypresses, limestone and fences.
+ * A local producer's facility in a lush Indian agricultural landscape,
+ * inside the road's second bend: a cream plastered building with a red
+ * corrugated roof carrying solar panels and a water tank, a shaded
+ * verandah, a courtyard behind a low plastered wall full of bougainvillea
+ * and potted plants. At its heart, a long table of product samples where
+ * the producer presents and THE BASKETRY evaluates; loading sits quietly
+ * behind. Around it: banana, mango and coconut palms, vegetable beds,
+ * fruit trees and paddy fields.
  *
  * Part of the one continuous world — placed beside the same road the truck
  * drives, straight on from Stage 1 (see stage2Layout.ts / stage2Geometry.ts).

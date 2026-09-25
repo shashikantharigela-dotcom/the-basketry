@@ -1,11 +1,12 @@
 import * as THREE from "three";
 import { getRoadRight, groundHeight, ROAD_CURVE, terrainHeight } from "../../foundation/sRoad";
-import { TERRACE, WALL_PLANTING } from "./stage2Layout";
+import { TERRACE, WALL_BED } from "./stage2Layout";
 
 /**
  * Stage 2 geometry that must follow the road exactly — derived from the
- * shared road curve at load, so the terrace wall and roadside fences sit
- * at a constant distance from the pavement all the way round the bend.
+ * shared road curve at load, so the courtyard wall, roadside fences and
+ * marker posts sit at a constant distance from the pavement all the way
+ * round the bend.
  */
 
 const right = new THREE.Vector3();
@@ -64,12 +65,28 @@ export const ROADSIDE_FENCES: Array<Array<[number, number]>> = [
   roadOffsetLine(0.335, 0.43, 1.3, 24),
 ];
 
-/** Shrubs spilling over the top of the wall, inset onto the terrace. */
-export const WALL_PLANTING_LINES: Array<Array<[number, number]>> = (() => {
-  const breaks = [WALL_PLANTING.uFrom, ...WALL_PLANTING.gaps.flat(), WALL_PLANTING.uTo];
-  const lines: Array<Array<[number, number]>> = [];
-  for (let i = 0; i < breaks.length - 1; i += 2) {
-    lines.push(roadOffsetLine(breaks[i], breaks[i + 1], TERRACE.roadOffset + WALL_PLANTING.inset, 12));
+/** Black-and-white striped roadside marker posts, just inside each fence. */
+export const MARKER_POSTS: Array<[number, number]> = [
+  ...roadOffsetLine(0.3, 0.46, -1.16, 20),
+  ...roadOffsetLine(0.335, 0.43, 1.16, 11),
+];
+
+/** Flowering shrubs along the foot of the compound wall, between it and the fence. */
+export const WALL_FOOT_POINTS: Array<[number, number]> = roadOffsetLine(
+  TERRACE.roadUFrom + 0.004,
+  TERRACE.roadUTo - 0.004,
+  TERRACE.roadOffset - 0.3,
+  14
+);
+
+/** Points along the flowering bed just inside the compound wall (skipping the gate). */
+export const WALL_BED_POINTS: Array<[number, number]> = (() => {
+  const steps = 30;
+  const out: Array<[number, number]> = [];
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps;
+    if (WALL_BED.gaps.some(([a, b]) => t > a && t < b)) continue;
+    out.push(roadOffsetPoint(TERRACE.roadUFrom + (TERRACE.roadUTo - TERRACE.roadUFrom) * t, TERRACE.roadOffset + WALL_BED.inset));
   }
-  return lines;
+  return out;
 })();

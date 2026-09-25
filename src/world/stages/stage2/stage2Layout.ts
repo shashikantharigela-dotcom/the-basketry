@@ -1,195 +1,242 @@
 /**
  * STAGE 2 — THE BASKETRY APPROACHES PRODUCTS: product evaluation and
- * discovery at a producer's processing facility.
+ * discovery at a local producer's facility, in a lush Indian agricultural
+ * landscape.
  *
- * Master visual reference: references/approved/stage2_product_approaches_reference.png
+ * Master visual reference: references/approved/stage2_product_approaches_reference_v2.png
  *
  * Pure layout data (world coordinates, no imports from the road/terrain
- * modules), like stage1Layout.ts, so the shared terrain can read the pads
- * and keep-outs without an import cycle. Runtime geometry that must follow
- * the road exactly (the terrace edge, the roadside fences) is derived from
- * the road in stage2Geometry.ts.
+ * modules), like stage1Layout.ts, so the shared terrain can read the pads,
+ * zone and keep-outs without an import cycle. Geometry that must follow
+ * the road exactly (the courtyard wall, fences, marker posts) is derived
+ * from the road in stage2Geometry.ts.
  *
- * Mapping the reference onto the real S-road: in this stretch (truck
- * u ≈ 0.29 → 0.44, scroll ≈ 25–45%) the road swings left to its westmost
- * point (x ≈ -6.5, z ≈ -17) and back, so a terrace on the INSIDE of that
- * bend has the road wrapping around its west face — the reference's arc.
- * Seen from the outside of the bend (camera to the west, looking east),
- * south is frame-left and north is frame-right, and the truck crosses the
- * frame right-to-left, as in the reference: processing hall centre-left,
- * loading canopy and silos to the right, the evaluation group in front on
- * the yard, the orchard below-right, crop terraces behind.
+ * Mapping onto the real S-road: in this stretch (truck u ≈ 0.29 → 0.44,
+ * scroll ≈ 25–45%) the road swings left to its westmost point (x ≈ -6.5,
+ * z ≈ -17) and back, so a courtyard on the INSIDE of that bend has the road
+ * wrapping round it, as in the reference. The camera views it from the
+ * outside of the bend (west, looking east): the verandah and courtyard
+ * face the road and the camera; loading sits to the north (frame-right),
+ * behind the evaluation; fields, orchard and paddies spread beyond.
  *
  * Scale: the same 0.22 units per metre as the truck and Stage 1.
  */
 
 import type { FigureSpec } from "../common/Figures";
-import type { FieldSpec, Rect, TreeSpec } from "../common/types";
+import type { FieldSpec, Rect } from "../common/types";
 
-/** The raised, paved yard. Its road-facing (west) edge follows the road at
- * a constant offset between these road positions; its east edge is straight. */
+/** The raised courtyard. Its road-facing (west) edge follows the road at a
+ * constant offset between these road positions; its east edge is straight. */
 export const TERRACE = {
   roadUFrom: 0.345,
   roadUTo: 0.418,
-  /** Distance from the road centerline to the retaining wall face. */
+  /** Distance from the road centerline to the compound wall face. */
   roadOffset: 2.0,
   eastX: 2.8,
-  /** How far the paving sits above the highest ground under it. */
-  lift: 0.26,
+  /** How far the courtyard floor sits above the highest ground under it. */
+  lift: 0.2,
 };
 
-/** Level ground under the terrace (so no hill pokes through the paving). */
+/** Level ground under the courtyard, and under the paddy fields (paddies are flat by nature). */
 export const STAGE2_PADS = [
   { x: -0.7, z: -14.6, radius: 4.2, falloff: 2.2 },
   { x: -0.7, z: -19.4, radius: 4.2, falloff: 2.2 },
+  // East paddies.
+  { x: 16.0, z: -13.0, radius: 4.2, falloff: 2.4 },
+  { x: 16.0, z: -19.6, radius: 4.2, falloff: 2.4 },
+  { x: 16.0, z: -26.0, radius: 4.2, falloff: 2.4 },
+  // West paddies (outside the bend).
+  { x: -16.8, z: -15.0, radius: 3.8, falloff: 2.2 },
+  { x: -16.8, z: -21.6, radius: 3.8, falloff: 2.2 },
 ];
 
-/** Processing hall: long cream building, red standing-seam roof, front to the west (the yard). */
-export const HALL = { x: 1.0, z: -18.6, rotationY: -Math.PI / 2, length: 4.6, depth: 2.2, wallHeight: 0.86 };
-
-/** Open-sided loading canopy (grey metal) north of the hall, and a small red canopy beyond it. */
-export const LOADING_CANOPY = { x: 1.0, z: -14.6, rotationY: -Math.PI / 2, length: 2.3, depth: 1.8, height: 0.78 };
-export const RED_CANOPY = { x: -0.8, z: -13.35, rotationY: -Math.PI / 2, length: 1.2, depth: 1.0, height: 0.6 };
-
-/** Twin galvanised silos with a ladder gantry, behind the canopy. */
-export const SILOS: Array<[number, number]> = [
-  [2.32, -13.35],
-  [2.32, -14.4],
-];
-
-/** THE KEY STORY MOMENT — product evaluation / discovery: display tables of
- * samples on the yard in front of the hall, with the producer team
- * presenting and THE BASKETRY representative inspecting. */
-export const EVALUATION = {
-  tables: [
-    { x: -2.55, z: -17.7, rotationY: 0.1 },
-    { x: -2.35, z: -16.8, rotationY: -0.15 },
-    { x: -2.95, z: -18.6, rotationY: 0.3 },
-  ],
-  /** A spread of sample bowls, baskets and crates on the yard toward the road. */
-  samples: { x: -3.35, z: -15.45, rotationY: 0.3 },
+/** Lush green ground for the Stage 2 stretch — blended over the shared
+ * natural earth (never replacing it), easing in after Stage 1 ends. */
+export const STAGE2_ZONE = {
+  id: "productApproaches",
+  zFrom: -13,
+  zTo: -29,
+  fade: 8.5,
+  strength: 0.8,
+  palette: { low: "#6f9443", high: "#9cb462", verge: "#97905c" },
 };
 
-/** Where the camera's Stage 2 shots lean their aim — the evaluation group. */
-export const STAGE2_FOCUS = { x: -2.6, z: -17.3, height: 0.55 };
+/** The producer's building: cream plaster, red corrugated roof with solar
+ * panels, a shaded verandah along its yard-facing (west) front. */
+export const HALL = { x: 1.05, z: -18.4, rotationY: -Math.PI / 2, length: 4.4, depth: 2.1, wallHeight: 0.78, verandahDepth: 0.72 };
+
+/** White metal loading canopy north of the building, and a small red-roofed store beyond. */
+export const LOADING_CANOPY = { x: 1.0, z: -14.55, rotationY: -Math.PI / 2, length: 2.2, depth: 1.8, height: 0.74 };
+export const RED_CANOPY = { x: -0.75, z: -13.2, rotationY: -Math.PI / 2, length: 1.2, depth: 1.0, height: 0.58 };
+
+/** Two steel grain silos behind the loading canopy. */
+export const SILOS: Array<[number, number]> = [
+  [2.35, -13.25],
+  [2.35, -14.3],
+];
+
+/** THE KEY STORY MOMENT — product evaluation / discovery: a long table of
+ * product samples in front of the verandah, the producer on one side and
+ * THE BASKETRY on the other, with crates of produce around them. */
+export const EVALUATION = {
+  table: { x: -1.9, z: -17.55, rotationY: Math.PI / 2, length: 1.15 },
+  /** Crates and baskets of produce set out on the courtyard toward the road. */
+  samples: { x: -2.85, z: -16.35, rotationY: 0.25 },
+  /** A second, small cluster of sacks and baskets by the table's south end. */
+  rawMaterials: { x: -2.2, z: -18.75, rotationY: -0.2 },
+};
+
+/** Where the camera's Stage 2 shots lean their aim — the evaluation table. */
+export const STAGE2_FOCUS = { x: -1.95, z: -17.5, height: 0.35 };
 
 const BASKETRY_RED = "#c8161d";
 
-/** The people: the producer team presenting and working, THE BASKETRY
- * representative (brand red, with a clipboard) inspecting the products. */
+/** The people: producer and colleague presenting from the verandah side,
+ * THE BASKETRY representative (brand red) and a colleague evaluating from
+ * the courtyard side; a few workers in the background. */
 export const STAGE2_FIGURES: FigureSpec[] = [
-  // THE BASKETRY representative, looking over the samples.
-  { x: -3.15, z: -17.35, yaw: Math.PI / 2 - 0.2, pose: "clipboard", shirt: BASKETRY_RED, hat: "none", trousers: "#3f3a36" },
-  // Producer presenting the products across the table.
-  { x: -1.95, z: -17.45, yaw: -Math.PI / 2 + 0.25, pose: "present", shirt: "#efe4cf", hat: "none", trousers: "#5b4a3b" },
-  // A second producer holding up a sample.
-  { x: -1.95, z: -16.5, yaw: -Math.PI / 2 - 0.35, pose: "inspect", shirt: "#8fa36b", hat: "cap", hatColor: "#efe4cf" },
-  // A colleague of the representative, inspecting at the second table.
-  { x: -3.0, z: -16.45, yaw: Math.PI / 2 + 0.45, pose: "inspect", shirt: "#d9cdb6", hat: "none", trousers: "#4b4440" },
-  // The producer's lead, presenting at the third table.
-  { x: -2.4, z: -19.0, yaw: -2.3, pose: "present", shirt: "#c8663f", hat: "none", trousers: "#5b4a3b" },
-  // Supporting activity: loading-bay workers.
-  { x: 0.05, z: -15.3, yaw: 0.9, pose: "carry", shirt: "#b8a27a", hat: "cap", hatColor: "#5b4a3b" },
-  { x: -0.2, z: -13.0, yaw: -2.2, pose: "stand", shirt: "#8fa36b", hat: "cap", hatColor: "#efe4cf" },
+  // THE BASKETRY representative, examining a sample.
+  { x: -2.45, z: -17.4, yaw: Math.PI / 2 + 0.1, pose: "inspect", shirt: BASKETRY_RED, hat: "none", trousers: "#3f3a36" },
+  // Colleague, taking notes.
+  { x: -2.4, z: -18.1, yaw: Math.PI / 2 - 0.35, pose: "clipboard", shirt: "#f2ede2", hat: "none", trousers: "#4b4440" },
+  // The producer, presenting across the table.
+  { x: -1.35, z: -17.65, yaw: -Math.PI / 2 - 0.1, pose: "present", shirt: "#e9dcc0", hat: "none", trousers: "#5b4a3b" },
+  // Producer's colleague, holding up a sample.
+  { x: -1.38, z: -17.0, yaw: -Math.PI / 2 + 0.35, pose: "inspect", shirt: "#7f9a5a", hat: "none", trousers: "#4b4440" },
+  // Supporting activity (secondary): loading and the store.
+  { x: 0.15, z: -15.1, yaw: 0.9, pose: "carry", shirt: "#c8663f", hat: "none", trousers: "#5b4a3b" },
+  { x: -0.35, z: -12.85, yaw: -2.3, pose: "stand", shirt: "#d9cdb6", hat: "none", trousers: "#4b4440" },
 ];
 
-/** Pallets stacked with sacks / crates on the yard and under the canopies. */
+/** Pallets of sacks / crates under the loading canopy and by the store (secondary). */
 export const PALLETS: Array<{ x: number; z: number; rotationY: number; load: "sacks" | "crates" }> = [
-  { x: 0.55, z: -14.0, rotationY: 0, load: "sacks" },
-  { x: 0.55, z: -14.9, rotationY: 0.05, load: "sacks" },
-  { x: 1.4, z: -15.2, rotationY: 0, load: "crates" },
-  { x: 1.35, z: -14.05, rotationY: -0.05, load: "sacks" },
-  { x: -0.6, z: -13.1, rotationY: 0.1, load: "crates" },
-  { x: -1.05, z: -13.6, rotationY: -0.1, load: "sacks" },
-  { x: -0.4, z: -16.1, rotationY: 0.2, load: "crates" },
-  { x: -0.55, z: -20.35, rotationY: -0.1, load: "crates" },
-  { x: -1.1, z: -20.6, rotationY: 0.15, load: "sacks" },
+  { x: 0.55, z: -13.95, rotationY: 0, load: "sacks" },
+  { x: 0.55, z: -14.85, rotationY: 0.05, load: "sacks" },
+  { x: 1.45, z: -15.15, rotationY: 0, load: "crates" },
+  { x: 1.4, z: -14.0, rotationY: -0.05, load: "sacks" },
+  { x: -0.5, z: -13.0, rotationY: 0.1, load: "crates" },
+  { x: -1.0, z: -13.5, rotationY: -0.1, load: "sacks" },
 ];
 
-/** A red forklift carrying a pallet across the yard, and a pallet jack. */
-export const FORKLIFT = { x: -0.9, z: -14.6, rotationY: -2.4 };
-export const PALLET_JACK = { x: -1.8, z: -15.1, rotationY: 0.6 };
+/** A small forklift and a pallet jack by the loading area (secondary). */
+export const FORKLIFT = { x: -0.55, z: -14.7, rotationY: -2.3 };
+export const PALLET_JACK = { x: -1.35, z: -15.3, rotationY: 0.6 };
 
-/** Planters along the hall front and yard edge. */
-export const PLANTERS: Array<[number, number, number]> = [
-  [-0.3, -19.55, 0],
-  [-0.3, -16.7, 0],
+/** Terracotta potted plants along the verandah front (x, z, size). */
+export const POTTED_PLANTS: Array<[number, number, number]> = [
+  [-0.95, -20.35, 1.1],
+  [-0.95, -19.6, 0.9],
+  [-0.95, -18.85, 1.0],
+  [-0.95, -16.3, 1.0],
+  [-0.95, -15.95, 0.85],
+  [-3.2, -19.9, 0.9],
+  [-3.35, -14.85, 1.0],
+  [-2.95, -18.9, 0.8],
+  [-1.2, -21.4, 1.0],
+  [-1.5, -12.1, 0.9],
 ];
 
-/** Shrubs spilling over the top of the retaining wall (points inset from the wall; built from the road at runtime). */
-export const WALL_PLANTING = {
-  inset: 0.3,
-  uFrom: 0.349,
-  uTo: 0.415,
-  gaps: [
-    [0.36, 0.366],
-    [0.382, 0.39],
-    [0.4, 0.405],
-  ] as Array<[number, number]>,
-};
-
-/** Small trees in planters on the yard, near the wall (as in the reference). */
-export const YARD_TREES: Array<[number, number, number]> = [
-  [-3.55, -20.35, 0.75],
-  [-3.7, -13.9, 0.7],
-  [-0.9, -21.0, 0.6],
+/** Shade trees in the courtyard, with a bench under the southern one. */
+export const COURTYARD_TREES: Array<[number, number, number]> = [
+  [-2.85, -20.85, 0.72],
+  [-3.15, -12.45, 0.62],
+  [-3.55, -15.6, 0.5],
 ];
 
-/** Surroundings. */
-export const ORANGE_ORCHARD = { x: 0.3, z: -9.1, columns: 4, rows: 2, spacing: 1.05, rotationY: -0.35 };
+/** A planted bed of flowering shrubs just inside the compound wall (road offsets from the wall face). */
+export const WALL_BED = { inset: 0.28, gaps: [[0.44, 0.55]] as Array<[number, number]> };
+export const BENCH = { x: -2.3, z: -21.05, rotationY: 0.15 };
 
+/** Flowering bougainvillea at the courtyard edges and along the compound wall (x, z, scale). */
+export const BOUGAINVILLEA: Array<[number, number, number]> = [
+  // Inside the courtyard, against the wall.
+  [-3.55, -21.7, 1.2],
+  [-3.9, -19.2, 1.0],
+  [-3.6, -13.7, 1.1],
+  [-2.9, -11.45, 1.15],
+  [-0.2, -11.3, 1.0],
+  [-0.4, -22.3, 1.1],
+];
+
+/** Crop fields and the fruit orchard around the facility. */
 export const STAGE2_FIELDS: FieldSpec[] = [
-  // Fenced vegetable rows below the orchard, toward the road.
+  // Vegetable beds (trellised) below the orchard, toward the road.
   { kind: "greens", x: 3.9, z: -8.6, width: 2.6, depth: 2.2, rotationY: -0.35 },
-  // Terraced crop rows behind the facility.
+  // Fields behind the facility.
   { kind: "greens", x: 6.4, z: -17.0, width: 3.0, depth: 4.6, rotationY: 0.05 },
   { kind: "sprouts", x: 6.2, z: -22.6, width: 3.0, depth: 4.0, rotationY: -0.1 },
   { kind: "tomatoes", x: 5.6, z: -12.2, width: 2.6, depth: 2.4, rotationY: 0.2 },
 ];
 
-export const STAGE2_TREES: TreeSpec[] = [
-  // Cypresses framing the terrace and the road — the reference's signature tree.
-  { kind: "cypress", x: -3.35, z: -10.45, scale: 1.1 },
-  { kind: "cypress", x: -2.4, z: -22.9, scale: 1.2 },
-  { kind: "cypress", x: 3.6, z: -11.2, scale: 1.25 },
-  { kind: "cypress", x: 3.7, z: -15.8, scale: 1.3 },
-  { kind: "cypress", x: 3.6, z: -21.4, scale: 1.15 },
-  { kind: "cypress", x: 8.4, z: -14.4, scale: 1.2 },
-  { kind: "cypress", x: 8.6, z: -20.0, scale: 1.1 },
-  { kind: "cypress", x: 4.6, z: -25.8, scale: 1.2 },
-  // Outside the bend (camera side), kept clear of the sightline to the yard.
-  { kind: "cypress", x: -9.4, z: -10.6, scale: 1.2 },
-  { kind: "cypress", x: -10.2, z: -11.6, scale: 1.0 },
-  { kind: "cypress", x: -9.2, z: -21.9, scale: 1.25 },
-  { kind: "cypress", x: -10.4, z: -23.0, scale: 1.05 },
-  // Round olive-like trees.
-  { kind: "round", x: 4.9, z: -19.4, scale: 1.0 },
-  { kind: "round", x: 9.6, z: -23.4, scale: 1.1 },
-  { kind: "round", x: 9.2, z: -10.2, scale: 1.0 },
-  { kind: "round", x: -11.4, z: -17.0, scale: 1.15 },
-  { kind: "round", x: -8.8, z: -7.6, scale: 1.0 },
-  { kind: "round", x: 1.2, z: -25.6, scale: 1.0 },
+/** The trellised vegetable bed (index into STAGE2_FIELDS). */
+export const TRELLIS_FIELD = 0;
+
+export const FRUIT_ORCHARD = { x: 0.3, z: -9.1, columns: 4, rows: 2, spacing: 1.05, rotationY: -0.35 };
+
+/** Paddy fields: grids of flooded plots with earth bunds (x, z = grid centre). */
+export const PADDIES: Array<{ x: number; z: number; columns: number; rows: number; plot: [number, number]; rotationY: number }> = [
+  { x: 16.0, z: -19.5, columns: 3, rows: 5, plot: [2.2, 2.4], rotationY: 0.04 },
+  { x: -16.8, z: -18.3, columns: 2, rows: 4, plot: [2.1, 2.3], rotationY: -0.06 },
 ];
 
-/** Limestone boulders at the wall foot and in the landscape (x, z, size). */
-export const BOULDERS: Array<[number, number, number]> = [
-  [-3.0, -11.3, 0.16],
-  [-2.6, -23.2, 0.2],
-  [-8.3, -13.2, 0.18],
-  [-8.1, -19.8, 0.22],
-  [-8.6, -16.4, 0.12],
-  [3.2, -24.4, 0.18],
-  [4.0, -10.4, 0.14],
-  [-9.9, -14.4, 0.15],
+/** Trees and plants around the facility (kind, x, z, scale). */
+export type Stage2Plant = ["mango" | "round" | "banana" | "palm", number, number, number];
+
+export const STAGE2_PLANTS: Stage2Plant[] = [
+  // Around the compound: mango shade trees and banana clumps.
+  ["mango", 3.9, -11.0, 1.1],
+  ["mango", 3.8, -21.6, 1.15],
+  ["mango", -1.6, -24.2, 1.2],
+  ["mango", 1.2, -25.5, 1.0],
+  ["banana", 3.3, -16.0, 1.0],
+  ["banana", 3.5, -19.3, 1.1],
+  ["banana", -3.2, -10.0, 1.05],
+  ["banana", -2.4, -23.6, 1.1],
+  ["banana", -0.8, -23.0, 0.95],
+  ["banana", 4.6, -24.8, 1.0],
+  // Outside the bend (camera side / foreground), clear of the sightline to the courtyard.
+  ["banana", -9.3, -10.4, 1.2],
+  ["banana", -10.1, -11.6, 1.0],
+  ["banana", -9.1, -23.2, 1.15],
+  ["banana", -9.9, -22.3, 1.0],
+  ["mango", -11.3, -9.2, 1.2],
+  ["mango", -11.2, -24.8, 1.25],
+  ["palm", -10.6, -13.4, 1.0],
+  ["palm", -10.9, -20.6, 1.05],
+  // Behind the fields.
+  ["palm", 8.8, -14.4, 1.0],
+  ["palm", 9.0, -20.2, 1.1],
+  ["mango", 9.4, -23.6, 1.1],
+  ["mango", 9.2, -10.0, 1.05],
+  ["banana", 8.4, -8.4, 1.0],
+  ["palm", 7.6, -26.6, 1.05],
 ];
 
-/** Areas the ambient/world vegetation must stay out of. */
+/** Coconut palms along the paddy bunds and field margins (distant depth). */
+export const DISTANT_PALMS: Array<[number, number, number]> = [
+  [11.6, -9.8, 1.1], [12.4, -13.6, 0.95], [11.8, -18.4, 1.05], [12.2, -23.5, 1.1], [11.5, -28.4, 1.0],
+  [20.3, -11.2, 1.05], [20.8, -16.8, 1.15], [20.1, -22.4, 1.0], [20.6, -28.2, 1.1],
+  [14.1, -30.2, 1.0], [17.6, -8.6, 0.95],
+  [-13.4, -12.8, 1.05], [-13.1, -19.0, 1.1], [-13.6, -24.6, 0.95],
+  [-20.1, -13.6, 1.0], [-20.4, -19.4, 1.1], [-19.8, -24.8, 1.05],
+  [-16.2, -10.6, 1.0], [-17.4, -27.2, 1.1],
+];
+
+/** Areas the Stage 2 ground cover and the world vegetation stay out of. */
 export const STAGE2_KEEP_OUT: Rect[] = [
-  // The terrace (its road-facing edge curves; this box covers it).
-  { x: -0.9, z: -16.85, width: 7.6, depth: 9.2, rotationY: 0 },
+  // The courtyard (its road-facing edge curves; this box covers it).
+  { x: -0.9, z: -16.85, width: 7.6, depth: 11.6, rotationY: 0 },
   ...STAGE2_FIELDS.map((f) => ({ ...f, width: f.width + 0.6, depth: f.depth + 0.6 })),
-  { x: ORANGE_ORCHARD.x, z: ORANGE_ORCHARD.z, width: 4.8, depth: 2.8, rotationY: ORANGE_ORCHARD.rotationY },
+  { x: FRUIT_ORCHARD.x, z: FRUIT_ORCHARD.z, width: 4.8, depth: 2.8, rotationY: FRUIT_ORCHARD.rotationY },
+  ...PADDIES.map((p) => ({
+    x: p.x,
+    z: p.z,
+    width: p.columns * p.plot[0] + 0.6,
+    depth: p.rows * p.plot[1] + 0.6,
+    rotationY: p.rotationY,
+  })),
 ];
 
-/** Where the world vegetation thins out because Stage 2 dresses its own land. */
+/** Where Stage 2 dresses its own land (its ground cover goes here; the
+ * world vegetation is left at nearly full density — the land stays lush). */
 export const STAGE2_BOUNDS = { minX: -12, maxX: 11, minZ: -27, maxZ: -6 };

@@ -74,7 +74,7 @@ const KEYFRAMES: CameraKeyframe[] = [
   { at: 0.31, back: 0.8, up: 5.0, side: -5.4, lookAhead: 0.015, lookUp: 0.2, fov: 38, focus: { productApproaches: 0.72 } },
   // Product evaluation: closer on the tables and the people around them,
   // the truck passing right below the wall.
-  { at: 0.38, back: -0.4, up: 4.0, side: -5.0, lookAhead: 0, lookUp: 0.3, fov: 34, focus: { productApproaches: 0.85 } },
+  { at: 0.38, back: -0.6, up: 3.3, side: -4.4, lookAhead: 0, lookUp: 0.3, fov: 30, focus: { productApproaches: 0.9 } },
   // Moving on: back behind the truck, rejoining the journey.
   { at: 0.44, back: 5.2, up: 4.0, side: 0.6, lookAhead: 0.02, lookUp: 0.35, fov: 42, focus: { productApproaches: 0.12 } },
   // Pass alongside in a side profile, keeping distance so the truck stays framed during the swing.

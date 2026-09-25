@@ -1,6 +1,6 @@
 import type { Rect } from "./common/types";
 import { SCATTER_BOUNDS, SCATTER_KEEP_OUT, STAGE1_PADS } from "./stage1/stage1Layout";
-import { STAGE2_BOUNDS, STAGE2_KEEP_OUT, STAGE2_PADS } from "./stage2/stage2Layout";
+import { STAGE2_BOUNDS, STAGE2_KEEP_OUT, STAGE2_PADS, STAGE2_ZONE } from "./stage2/stage2Layout";
 
 /**
  * Registry of how each story stage shapes the shared terrain. The
@@ -33,13 +33,16 @@ export interface TerrainZone {
   zTo: number;
   /** Blend distance back to the neutral palette outside the range. */
   fade: number;
+  /** How strongly the tint covers the shared landscape at full weight (0–1,
+   * default 0.35); below 1 the natural earth variation shows through. */
+  strength?: number;
   palette: TerrainPalette;
 }
 
-/** Optional gentle ground tints a stage can lay over the shared natural
- * landscape. Stage 1 uses none — the farm sits in the same continuous
- * land as everything else. */
-export const TERRAIN_ZONES: TerrainZone[] = [];
+/** Optional ground tints a stage can lay over the shared natural landscape.
+ * Stage 1 uses none. Stage 2 greens its stretch (lush Indian farmland),
+ * easing in only after Stage 1's land ends. */
+export const TERRAIN_ZONES: TerrainZone[] = [STAGE2_ZONE];
 
 export const TERRAIN_PADS: TerrainPad[] = [...STAGE1_PADS, ...STAGE2_PADS];
 
@@ -62,6 +65,12 @@ export const VEGETATION_SPARSE: Array<{ minX: number; maxX: number; minZ: number
  */
 export const VEGETATION_CLEARINGS: Rect[] = [...STAGE2_KEEP_OUT];
 
-export const VEGETATION_THINNING: Array<{ minX: number; maxX: number; minZ: number; maxZ: number; factor: number }> = [
-  { ...STAGE2_BOUNDS, factor: 0.4 },
-];
+export const VEGETATION_THINNING: Array<{
+  minX: number;
+  maxX: number;
+  minZ: number;
+  maxZ: number;
+  factor: number;
+  /** Drop the world's poplar columns here (they read as cypresses, not Indian farmland). */
+  dropPoplars?: boolean;
+}> = [{ ...STAGE2_BOUNDS, minX: -26, maxX: 26, minZ: -34, factor: 0.85, dropPoplars: true }];

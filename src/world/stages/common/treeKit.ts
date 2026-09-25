@@ -26,6 +26,7 @@ const CROWN_COLORS = [
   new THREE.Color("#9aae62"),
 ];
 const POPLAR_COLORS = [new THREE.Color("#5b7a3c"), new THREE.Color("#6a8a45")];
+const MANGO_COLORS = [new THREE.Color("#3f6b2c"), new THREE.Color("#4a7832"), new THREE.Color("#3a6429")];
 const CYPRESS_COLORS = [new THREE.Color("#3e5a2c"), new THREE.Color("#4a6634"), new THREE.Color("#44602f")];
 
 export interface TreeBatches {
@@ -57,6 +58,37 @@ export function addTree(tree: TreeSpec, random: () => number, out: TreeBatches):
     out.crownColors.push(color);
     out.crowns.push(instanceMatrix(tree.x, y + 1.22 * s, tree.z, yaw, 0.085 * s, 0.32 * s, 0.085 * s));
     out.crownColors.push(color);
+    return;
+  }
+
+  if (tree.kind === "mango") {
+    // Broad, dense, dark evergreen canopy on a short stout trunk — the
+    // shade tree of every Indian courtyard and field edge.
+    const trunkHeight = 0.26 * s;
+    const crown = 0.4 * s;
+    out.trunks.push(instanceMatrix(tree.x, y, tree.z, yaw, 0.06 * s, trunkHeight, 0.06 * s));
+    const color = MANGO_COLORS[Math.floor(random() * MANGO_COLORS.length)];
+    const c = Math.cos(yaw);
+    const sn = Math.sin(yaw);
+    const lobes: Array<[number, number, number, number]> = [
+      [0, trunkHeight + crown * 0.8, 0, 1],
+      [crown * 0.62, trunkHeight + crown * 0.55, crown * 0.15, 0.72],
+      [-crown * 0.58, trunkHeight + crown * 0.58, -crown * 0.2, 0.75],
+      [crown * 0.1, trunkHeight + crown * 0.52, crown * 0.62, 0.7],
+      [-crown * 0.15, trunkHeight + crown * 0.55, -crown * 0.6, 0.7],
+    ];
+    for (const [bx, by, bz, bs] of lobes) {
+      const r = crown * bs;
+      out.crowns.push(instanceMatrix(tree.x + bx * c + bz * sn, y + by, tree.z - bx * sn + bz * c, random() * 6, r, r * 0.78, r));
+      out.crownColors.push(color);
+    }
+    for (let k = 0; k < 6; k++) {
+      const a = random() * Math.PI * 2;
+      const reach = crown * (0.95 + random() * 0.2);
+      out.orangeFruit.push(
+        instanceMatrix(tree.x + Math.cos(a) * reach, y + trunkHeight + crown * (0.3 + random() * 0.4), tree.z + Math.sin(a) * reach, 0, 0.026 * s)
+      );
+    }
     return;
   }
 

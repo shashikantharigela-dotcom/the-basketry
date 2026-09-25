@@ -9,7 +9,7 @@ export interface Rect {
   rotationY: number;
 }
 
-export type TreeKind = "round" | "poplar" | "fruit" | "orange" | "cypress";
+export type TreeKind = "round" | "poplar" | "fruit" | "orange" | "cypress" | "mango";
 
 export interface TreeSpec {
   kind: TreeKind;

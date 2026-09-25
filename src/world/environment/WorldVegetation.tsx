@@ -64,10 +64,11 @@ function positionHash(x: number, z: number): number {
 /** Post-placement filter for later stages (see VEGETATION_CLEARINGS): true
  * when a plant at (x, z) should be dropped. Evaluated only AFTER a plant's
  * random draws, so it never shifts the seeded layout anywhere else. */
-function isCleared(x: number, z: number): boolean {
+function isCleared(x: number, z: number, kind?: TreeKind): boolean {
   if (VEGETATION_CLEARINGS.some((rect) => insideRect(rect, x, z))) return true;
   for (const region of VEGETATION_THINNING) {
     if (x >= region.minX && x <= region.maxX && z >= region.minZ && z <= region.maxZ) {
+      if (kind === "poplar" && region.dropPoplars) return true;
       return positionHash(x, z) > region.factor;
     }
   }
@@ -117,7 +118,7 @@ export function WorldVegetation() {
       const kind: TreeKind = roll < 0.68 ? "round" : roll < 0.95 ? "poplar" : "fruit";
       // Always build (so the random stream advances identically); keep it
       // only if no later stage has cleared this spot.
-      addTree({ kind, x, z, scale: 0.8 + random() * 0.55 }, random, isCleared(x, z) ? discarded : trees);
+      addTree({ kind, x, z, scale: 0.8 + random() * 0.55 }, random, isCleared(x, z, kind) ? discarded : trees);
     });
 
     // Shrubs, mostly in the meadows.
