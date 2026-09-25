@@ -5,12 +5,14 @@ import { STAGE2_FOCUS } from "../stages/stage2/stage2Layout";
 import { TERRACE_TOP } from "../stages/stage2/stage2Geometry";
 import { STAGE3_FOCUS } from "../stages/stage3/stage3Layout";
 import { apronY } from "../stages/stage3/stage3Geometry";
+import { STAGE4_FOCUS } from "../stages/stage4/stage4Layout";
+import { paveY } from "../stages/stage4/stage4Geometry";
 
 /**
  * Cinematic camera path for the 3D foundation: a pure function of scroll
  * progress that rides along the S-road with the truck. Each story stage
  * gets its own short sequence of shots (Stage 1 ≈ 0–20%, Stage 2 ≈ 25–45%,
- * Stage 3 ≈ 50–70%)
+ * Stage 3 ≈ 50–70%, Stage 4 ≈ 74–92%)
  * leaning toward that stage's focus point, then the journey continues and
  * lifts into a wide overview at the end. FoundationCameraRig damps toward this every
  * frame — nothing here is smoothed or stateful.
@@ -49,6 +51,7 @@ const FOCUS_POINTS = {
   ),
   productApproaches: new THREE.Vector3(STAGE2_FOCUS.x, TERRACE_TOP + STAGE2_FOCUS.height, STAGE2_FOCUS.z),
   awarenessSetup: new THREE.Vector3(STAGE3_FOCUS.x, apronY(STAGE3_FOCUS.x, STAGE3_FOCUS.z) + STAGE3_FOCUS.height, STAGE3_FOCUS.z),
+  consumerExperience: new THREE.Vector3(STAGE4_FOCUS.x, paveY(STAGE4_FOCUS.x, STAGE4_FOCUS.z) + STAGE4_FOCUS.height, STAGE4_FOCUS.z),
 };
 type FocusId = keyof typeof FOCUS_POINTS;
 const FOCUS_IDS = Object.keys(FOCUS_POINTS) as FocusId[];
@@ -95,7 +98,20 @@ const KEYFRAMES: CameraKeyframe[] = [
   { at: 0.605, back: 3.6, up: 4.6, side: 4.0, lookAhead: 0, lookUp: 0.25, fov: 36, focus: { awarenessSetup: 0.74 } },
   // Moving on: back behind the journey truck as the road bends away.
   { at: 0.68, back: 5.0, up: 4.4, side: 1.8, lookAhead: 0.03, lookUp: 0.3, fov: 42, focus: { awarenessSetup: 0.08 } },
-  { at: 0.82, back: 8.5, up: 5.0, side: 2.0, lookAhead: 0.035, lookUp: 0.3, fov: 42 },
+  // Bridge: exactly where the previous journey shot passed at 70%, so the
+  // Stage 3 sequence before it is untouched.
+  { at: 0.7, back: 5.194, up: 4.433, side: 1.811, lookAhead: 0.0303, lookUp: 0.3, fov: 42, focus: { awarenessSetup: 0.0756 } },
+  // STAGE 4 — CONSUMER EXPERIENCE (≈ 74–92%), after the approved reference:
+  // the road enters the city; from the LEFT of the road (outside of the next
+  // bend), the road and journey truck in front, the busy activation on the
+  // plaza to the right, apartments and offices behind.
+  // Approach: swinging out to the left as the district comes into view.
+  { at: 0.775, back: 6.2, up: 5.2, side: -2.6, lookAhead: 0.04, lookUp: 0.3, fov: 42, focus: { consumerExperience: 0.35 } },
+  // Hero: the journey truck arriving alongside the plaza — consumers at the
+  // counter, tables and shelves; the second truck beyond with more stock.
+  { at: 0.845, back: 3.2, up: 4.2, side: -3.0, lookAhead: 0.01, lookUp: 0.25, fov: 34, focus: { consumerExperience: 0.78 } },
+  // Moving on: back behind the journey truck as the road bends away.
+  { at: 0.905, back: 5.6, up: 4.8, side: -1.2, lookAhead: 0.03, lookUp: 0.3, fov: 42, focus: { consumerExperience: 0.12 } },
   // Lift into a wide overview of the miniature world.
   { at: 1.0, back: 16, up: 14, side: 5.0, lookAhead: 0.02, lookUp: 0, fov: 38 },
 ];

@@ -13,6 +13,11 @@ const PRODUCE = new THREE.MeshStandardMaterial({ color: "#d42a1f", roughness: 0.
 const CLIPBOARD = new THREE.MeshStandardMaterial({ color: "#f4efe4", roughness: 0.6, metalness: 0 });
 const CARTON = new THREE.MeshStandardMaterial({ color: "#c79b62", roughness: 0.85, metalness: 0 });
 const TAPE = new THREE.MeshStandardMaterial({ color: "#c8161d", roughness: 0.6, metalness: 0 });
+const HAIR = new THREE.MeshStandardMaterial({ color: "#2b211c", roughness: 0.75, metalness: 0 });
+const JAR = new THREE.MeshStandardMaterial({ color: "#e3a33c", roughness: 0.35, metalness: 0.05 });
+const LID = new THREE.MeshStandardMaterial({ color: "#c8161d", roughness: 0.5, metalness: 0.1 });
+const PAPER_BAG = new THREE.MeshStandardMaterial({ color: "#c9a57a", roughness: 0.9, metalness: 0 });
+const SAMPLE = new THREE.MeshStandardMaterial({ color: "#f4efe4", roughness: 0.6, metalness: 0 });
 
 const shirtMaterials = new Map<string, THREE.MeshStandardMaterial>();
 function shirtMaterial(color: string): THREE.MeshStandardMaterial {
@@ -24,7 +29,20 @@ function shirtMaterial(color: string): THREE.MeshStandardMaterial {
   return material;
 }
 
-export type FigurePose = "carry" | "basket" | "stand" | "inspect" | "present" | "clipboard" | "carton";
+export type FigurePose =
+  | "carry"
+  | "basket"
+  | "stand"
+  | "inspect"
+  | "present"
+  | "clipboard"
+  | "carton"
+  // Consumers (Stage 4+): tasting a sample, holding a product jar up to
+  // look at it, carrying a shopping bag, and talking with a hand raised.
+  | "taste"
+  | "hold"
+  | "bag"
+  | "talk";
 
 export interface FigureSpec {
   x: number;
@@ -33,9 +51,12 @@ export interface FigureSpec {
   yaw: number;
   pose: FigurePose;
   shirt: string;
-  hat?: "straw" | "cap" | "none";
+  /** Headwear, or "hair" for a bare head with dark hair (city consumers). */
+  hat?: "straw" | "cap" | "none" | "hair";
   hatColor?: string;
   trousers?: string;
+  /** "sari": a long draped skirt in the shirt colour, with a sash, instead of trousers. */
+  outfit?: "trousers" | "sari";
 }
 
 /** Arm pitch (left, right) per pose: forward to carry, one lowered with a
@@ -49,6 +70,10 @@ const ARM_PITCH: Record<FigurePose, [number, number]> = {
   present: [0.08, -1.25],
   clipboard: [-0.85, -0.2],
   carton: [-1.0, -1.0],
+  taste: [0.08, -2.3],
+  hold: [-0.85, -1.05],
+  bag: [0.08, 0.02],
+  talk: [0.08, -0.7],
 };
 
 export function Figure({
@@ -60,6 +85,7 @@ export function Figure({
   hat = "straw",
   hatColor,
   trousers,
+  outfit = "trousers",
   surfaceY = groundY,
 }: FigureSpec & { surfaceY?: (x: number, z: number) => number }) {
   const body = shirtMaterial(shirt);
@@ -69,11 +95,23 @@ export function Figure({
 
   return (
     <group position={[x, surfaceY(x, z) - 0.005, z]} rotation={[0, yaw, 0]}>
-      {[-1, 1].map((s) => (
-        <mesh key={s} material={legs} position={[s * 0.021, 0.085, 0]} castShadow>
-          <capsuleGeometry args={[0.017, 0.14, 4, 8]} />
-        </mesh>
-      ))}
+      {outfit === "sari" ? (
+        <>
+          <mesh material={body} position={[0, 0.095, 0]} castShadow>
+            <cylinderGeometry args={[0.036, 0.05, 0.19, 14]} />
+          </mesh>
+          {/* The pallu: a sash over one shoulder. */}
+          <mesh material={body} position={[-0.012, 0.25, 0.002]} rotation={[0, 0, 0.55]} castShadow>
+            <boxGeometry args={[0.03, 0.13, 0.092]} />
+          </mesh>
+        </>
+      ) : (
+        [-1, 1].map((s) => (
+          <mesh key={s} material={legs} position={[s * 0.021, 0.085, 0]} castShadow>
+            <capsuleGeometry args={[0.017, 0.14, 4, 8]} />
+          </mesh>
+        ))
+      )}
       <mesh material={body} position={[0, 0.235, 0]} castShadow>
         <capsuleGeometry args={[0.042, 0.075, 6, 12]} />
       </mesh>
@@ -103,6 +141,11 @@ export function Figure({
             <cylinderGeometry args={[0.026, 0.031, 0.03, 16]} />
           </mesh>
         </>
+      )}
+      {hat === "hair" && (
+        <mesh material={HAIR} position={[0, 0.346, -0.004]} castShadow>
+          <sphereGeometry args={[0.0325, 14, 8, 0, Math.PI * 2, 0, Math.PI * 0.55]} />
+        </mesh>
       )}
       {hat === "cap" && (
         <>
@@ -148,6 +191,34 @@ export function Figure({
         <mesh material={CLIPBOARD} position={[-0.03, 0.23, 0.075]} rotation={[-0.5, 0.3, 0]} castShadow>
           <boxGeometry args={[0.055, 0.075, 0.006]} />
         </mesh>
+      )}
+      {pose === "taste" && (
+        // A small sample cup raised to the mouth.
+        <mesh material={SAMPLE} position={[0.05, 0.325, 0.045]} castShadow>
+          <cylinderGeometry args={[0.011, 0.008, 0.016, 10]} />
+        </mesh>
+      )}
+      {pose === "hold" && (
+        // A product jar (red lid) held up in both hands to look at.
+        <group position={[0, 0.245, 0.095]}>
+          <mesh material={JAR} castShadow>
+            <cylinderGeometry args={[0.019, 0.019, 0.045, 12]} />
+          </mesh>
+          <mesh material={LID} position={[0, 0.026, 0]}>
+            <cylinderGeometry args={[0.02, 0.02, 0.008, 12]} />
+          </mesh>
+        </group>
+      )}
+      {pose === "bag" && (
+        // A paper shopping bag in the right hand.
+        <group position={[0.072, 0.135, 0.012]}>
+          <mesh material={PAPER_BAG} castShadow>
+            <boxGeometry args={[0.022, 0.06, 0.05]} />
+          </mesh>
+          <mesh material={TAPE} position={[0, 0.005, 0]}>
+            <boxGeometry args={[0.023, 0.014, 0.051]} />
+          </mesh>
+        </group>
       )}
       {pose === "basket" && (
         <group position={[0.07, 0.15, 0.04]}>
